@@ -105,7 +105,6 @@ namespace ps5{
     if (limit_val < 0 || limit_val > SHRT_MAX) {
       return;
     }
-
     axis_modify_limit = limit_val;
   }
 }
