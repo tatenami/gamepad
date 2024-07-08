@@ -20,7 +20,7 @@ namespace pad {
       const int total_axis_num = 6;
     }
 
-    namespace evnum {
+    namespace id {
       // Button event number
       const int cross    = 0;
       const int circle   = 1;
@@ -51,53 +51,56 @@ namespace pad {
       const int crossY  = 7;
     }
 
-    class PS5PadData: public PadData {
+    class PS5Handler: public EventHandler {
      private:
+      int16_t deadzone_{common::default_deadzone};
+      int pre_crossXid_;
+      int pre_crossYid_;
+
       void handleCrossXData(int16_t val);
       void handleCrossYData(int16_t val);
-      void handleButtonEvent(Event event) override;
-      void handleAxisEvent(Event event) override;
+      void handleButtonEvent() override;
+      void handleAxisEvent() override;
 
      public:
-      using PadData::PadData;
-      void update(Event event) override;
+      void editEvent(PadEvent event) override;
     };
 
     class DualSense {
      private:
-      bool is_connected_ = false; 
       PadReader  reader_;
-      PS5PadData data_;
+      PS5Handler handler_;
+      ButtonData buttons_;
+      AxisData   axes_;
 
      public:
-      Button Cross     {evnum::cross};
-      Button Circle    {evnum::circle};
-      Button Triangle  {evnum::triangle};
-      Button Square    {evnum::square};
-      Button L1        {evnum::L1};
-      Button R1        {evnum::R1};
-      TriggerButton L2 {evnum::L2, evnum::L2depth};
-      TriggerButton R2 {evnum::R2, evnum::R2depth};
-      Button Create    {evnum::create};
-      Button Option    {evnum::option};
-      Button PS        {evnum::ps};
-      Button L3        {evnum::L3};
-      Button R3        {evnum::R3};
-      Button Left      {evnum::left};
-      Button Right     {evnum::right};
-      Button Up        {evnum::up};
-      Button Down      {evnum::down};
+      Button Cross     {id::cross};
+      Button Circle    {id::circle};
+      Button Triangle  {id::triangle};
+      Button Square    {id::square};
+      Button L1        {id::L1};
+      Button R1        {id::R1};
+      TriggerButton L2 {id::L2, id::L2depth};
+      TriggerButton R2 {id::R2, id::R2depth};
+      Button Create    {id::create};
+      Button Option    {id::option};
+      Button PS        {id::ps};
+      Button L3        {id::L3};
+      Button R3        {id::R3};
+      Button Left      {id::left};
+      Button Right     {id::right};
+      Button Up        {id::up};
+      Button Down      {id::down};
 
-      Stick Lstick {evnum::leftX, evnum::leftY};
-      Stick Rstick {evnum::rightX, evnum::rightY};
+      Stick Lstick {id::leftX, id::leftY};
+      Stick Rstick {id::rightX, id::rightY};
 
-      DualSense(Connect mode = Connect::USB);
+      DualSense(Connect mode);
       ~DualSense();
 
-      void init();
       void update();
       bool isConnected();
-    }; 
+    };
 
   }
 }

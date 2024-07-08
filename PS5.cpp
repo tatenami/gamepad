@@ -4,104 +4,101 @@ namespace pad {
 
   namespace ps5 {
 
-    void PS5PadData::handleCrossXData(int16_t val) {
-      if (val > 0)
-        button_event_ = {evnum::right, button_state::ON, ButtonAction::Push};
-
-      else if (val < 0)
-        button_event_ = {evnum::left, button_state::ON, ButtonAction::Push};
-
+    void PS5Handler::handleCrossXData(int16_t val) {
+      if (val > 0) {
+        this->pre_crossXid_ = id::right;
+        button_event_ = {id::right, bstate::ON};
+      }
+      else if (val < 0) {
+        this->pre_crossXid_ = id::left;
+        button_event_ = {id::left, bstate::ON};
+      }
       else {
-        if (buttons_.at(evnum::right)->isON())
-          button_event_.number = evnum::right;
-        else if (buttons_.at(evnum::left)->isON())
-          button_event_.number = evnum::left;
-
-        button_event_.state  = button_state::OFF;
-        button_event_.action = ButtonAction::Release;  
-      } 
+        switch (this->pre_crossXid_) {
+          case (id::right): button_event_.id = id::right; break;
+          case (id::left) : button_event_.id = id::left; break;
+        }
+        button_event_.state = bstate::OFF;
+      }
     }
 
-    void PS5PadData::handleCrossYData(int16_t val) {
-      if (val > 0)
-        button_event_ = {evnum::down, button_state::ON, ButtonAction::Push}; 
-
-      else if (val < 0)
-        button_event_ = {evnum::up, button_state::ON, ButtonAction::Push};
-
+    void PS5Handler::handleCrossYData(int16_t val) {
+      if (val > 0) {
+        this->pre_crossYid_ = id::down;
+        button_event_ = {id::down, bstate::ON};
+      }
+      else if (val < 0) {
+        this->pre_crossYid_ = id::up;
+        button_event_ = {id::up, bstate::ON};
+      }
       else {
-        if (buttons_.at(evnum::down)->isON())
-          button_event_.number = evnum::down;
-        else if (buttons_.at(evnum::up)->isON())
-          button_event_.number = evnum::up;
-
-        button_event_.state  = button_state::OFF;
-        button_event_.action = ButtonAction::Release; 
-      }
-    } 
-
-    void PS5PadData::handleButtonEvent(Event event) {
-      button_event_.number = event.number;
-
-      switch (event.value) {
-        case 0: {
-          button_event_.state  = button_state::OFF;
-          button_event_.action = ButtonAction::Release;
-          break;
+        switch (this->pre_crossYid_) {
+          case (id::down): button_event_.id = id::down; break;
+          case (id::up) : button_event_.id = id::up; break;
         }
-        case 1: {
-          button_event_.state  = button_state::ON;
-          button_event_.action = ButtonAction::Push;
-          break;
-        }
+        button_event_.state = bstate::OFF;
       }
-
-      updateButton(button_event_);
     }
 
-    void PS5PadData::handleAxisEvent(Event event) {
-      int16_t val = event.value;
+    void PS5Handler::handleAxisEvent() {
+      int16_t val = event_.value;
 
-      switch (event.number) {
-        case (evnum::crossX): {
+      switch (event_.id) {
+        case (id::crossX): {
+          event_.type = EventType::BUTTON;
           handleCrossXData(val);
-          updateButton(button_event_);
           break;
         }
-        case (evnum::crossY): {
+        case (id::crossY): {
+          event_.type = EventType::BUTTON;
           handleCrossYData(val);
-          updateButton(button_event_);
           break;
         }
-        case (evnum::leftY):
-        case (evnum::rightY): {
+        case (id::leftY):
+        case (id::rightY): {
           val *= -1;
         }
         default: {
-          axis_event_.number = event.number;
-          axis_event_.value  = val;
-          cutDeadzone();
-          updateAxis(axis_event_);
+          if (abs(val) < deadzone_) val = 0;
+          axis_event_.id = event_.id;
+          axis_event_.value = val;
         }
       }
     }
 
-    void PS5PadData::update(Event event) {
-      resetButtonAction();
+    void PS5Handler::handleButtonEvent() {
+      button_event_.id = event_.id;
 
-      switch (event.type) {
-        case (EventType::EVENT_BUTTON): {
-          handleButtonEvent(event);
+      switch (event_.value) {
+        case 0: {
+          button_event_.state  = bstate::OFF;
           break;
         }
-        case (EventType::EVENT_AXIS): {
-          handleAxisEvent(event);
+        case 1: {
+          button_event_.state  = bstate::ON;
+          break;
+        }
+      }
+    } 
+
+    void PS5Handler::editEvent(PadEvent event) {
+      this->event_ = event;
+
+      switch (event.type) {
+        case (EventType::BUTTON): {
+          handleButtonEvent();
+          break;
+        }
+        case (EventType::AXIS): {
+          handleAxisEvent();
           break;
         }
         default: ;
       }
-    }
 
+    } 
+
+    // コンストラクタ [ 初期化処理全部詰め ]
     DualSense::DualSense(Connect mode) {
       std::string device_name;
 
@@ -110,72 +107,61 @@ namespace pad {
         case (Connect::Bluetooth): device_name = dev::bluetooth; break;
       }
 
-      bool connection = reader_.connect(device_name);
-      this->is_connected_ = connection;
-
-      std::vector<Button*> buttons = 
-      {
-        &Cross,
-        &Circle,
-        &Triangle,
-        &Square,
-        &L1,
-        &R1,
-        &L2,
-        &R2,
-        &Create,
-        &Option,
-        &PS,
-        &L3,
-        &R3,
-        &Left,
-        &Right,
-        &Up,
-        &Down
+      std::vector<Button*> buttons = {
+        &Cross, &Circle, &Triangle, &Square,
+        &L1, &R1, &L2, &R2, 
+        &Create, &Option, &PS, &L3, &R3,
+        &Left, &Right, &Up, &Down       
       };
 
-      std::vector<Axis*> axes =
-      {
-        &Lstick.x,
-        &Lstick.y,
-        L2.getAxis(),
-        &Rstick.x,
-        &Rstick.y,
-        R2.getAxis(),
+      std::vector<Axis*> axes = {
+        &Lstick.x, &Lstick.y, L2.getAxis(), &Rstick.x, &Rstick.y, R2.getAxis()       
       };
 
-      data_.resister(buttons); 
-      data_.resister(axes);
+      reader_.connect(device_name);
+      buttons_.resister(buttons);
+      axes_.resister(axes);
 
       for (int i = 0; i < dev::init_button_event_freq; i++) {
-        if (is_connected_) update();
+        reader_.readData();
       }
 
-      for (int i = 0; i < dev::init_axis_event_freq; i++) {
-        if (is_connected_) update(); 
-      }
+      buttons_.clear();
+      axes_.clear();
 
-      data_.clear();
+      std::cout << "Device is initialized" << std::endl;
     }
 
+    // デストラクタ
     DualSense::~DualSense() {
-      reader_.disconnect();
+      reader_.disconnect(); // PadReaderのデストラクタで呼ばれるけど念の為
     }
-
-    bool DualSense::isConnected() { return this->is_connected_; }
 
     void DualSense::update() {
-      bool is_connected = reader_.isConnected();
-      bool is_updated   = reader_.readData();
+      if (reader_.readData()) {   // イベントが発生
 
-      if (!is_connected || !is_updated) {
-        this->is_connected_ = false;
-        return;
+        handler_.editEvent(reader_.getPadEvent()); // Handlerでイベントの編集
+        buttons_.resetAction();
+
+        switch (handler_.getEventType()) {  // イベントの種類でボタン・軸の処理分け
+          case (EventType::BUTTON): {
+            buttons_.update(handler_.getButtonEvent());
+            break;
+          }
+          case (EventType::AXIS): {
+            axes_.update(handler_.getAxisEvent());
+            break;
+          }
+          default: ;
+        }
       }
-
-      this->is_connected_ = true;
-      data_.update(reader_.getEvent());
+      else {
+        buttons_.resetAction(); // push, releaseを正しく動作させるために必ずリセット
+      }
     }
+
+    bool DualSense::isConnected() { return this->reader_.isConnected(); }
+
   }
 
 }
