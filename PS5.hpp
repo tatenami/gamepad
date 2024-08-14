@@ -63,15 +63,14 @@ namespace pad {
       void handleAxisEvent() override;
 
      public:
-      void editEvent(PadEvent event) override;
+      void editEvent(PadReader& reader) override;
     };
 
     class DualSense {
      private:
       PadReader  reader_;
       PS5Handler handler_;
-      ButtonData buttons_;
-      AxisData   axes_;
+      PadData    pad_;
 
      public:
       Button Cross     {id::cross};

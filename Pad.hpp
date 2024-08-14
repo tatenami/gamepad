@@ -70,160 +70,6 @@ namespace pad {
     std::string path;
   };
 
-  /**----------------------------------------------
-   * [ Button class ]
-   * ユーザーにボタンの状態とその変化をデータとして提供する
-   * インターフェース的なイメージ，IDによりボタンと1対1対応
-   * ユーザー側はデータを書き換えれない
-   -----------------------------------------------*/
-  class Button {
-   protected:
-    const int    id_;
-    bool         state_{bstate::OFF};
-    ButtonAction action_{ButtonAction::None};
-
-    void update(bool state, ButtonAction action);
-    void update(ButtonAction action);
-
-    friend class ButtonData;
-
-   public:
-    Button(int event_number);
-    Button* get();
-    int  getID();
-    bool pressed();
-    bool pushed();
-    bool released();
-  };
-
-  inline Button* Button::get() { return this; }
-
-  inline int Button::getID() { return this->id_; }
-
-  /**------------------------------------------
-   * [ Axis class ]
-   * スティック・ボタン深度の，可変値をデータとして提供
-   * その他Buttonクラスと同様の仕様
-   -------------------------------------------*/
-  class Axis {
-   private:
-    const int id_;
-    int16_t   value_{0};
-
-    void update(int16_t value);
-
-    friend class AxisData;
-    
-   public:
-    Axis(int event_number);
-    Axis* get();
-    int getID();
-    int getValue();
-  };
-
-  inline Axis* Axis::get() { return this; }
-
-  inline int Axis::getID() { return this->id_; }
-
-  /**--------------------------------
-   * [ TriggerButton class ]
-   * メインはButtonクラス(継承)
-   * 深度用のAxisクラスをデータとして持つ
-   * L2R2ボタンに採用
-   ---------------------------------*/
-  class TriggerButton: public Button {
-   private:
-    Axis depth_;
-
-    //friend void ButtonData::update(ButtonEvent event);
-
-   public:
-    TriggerButton(int b_id, int a_id);
-    using Button::update;
-    int   getDepth();
-    Axis* getAxis(); 
-  };
-
-  inline int TriggerButton::getDepth() { return depth_.getValue(); }
-
-  inline Axis* TriggerButton::getAxis() { return this->depth_.get(); }
-
-  /**---------------------
-   * [ Stick class ]
-   * X軸Y軸の2つのAxisを持つ
-   -----------------------*/
-  class Stick {
-   public:
-    Axis x;
-    Axis y;
-
-    Stick(int x_id, int y_id);
-  };
-
-  /**----------------------------------------
-   * [ ButtonData class ]
-   * Padが持つButtonクラスを管理する
-   * 各ButtonのポインタをID順に配列で保持
-   * Eventを受け取ることでポインタ経由でデータ更新
-   -----------------------------------------*/
-  class ButtonData {
-   private:
-    ButtonEvent event_;
-    std::vector<Button*> list_{nullptr};
-
-   public:
-    ButtonData();
-    void resister(std::vector<Button*> buttons);
-    void update(ButtonEvent event);
-    void resetAction();
-    void clear();
-  };
-
-  /**----------------------------------------
-   * [ AxisData class ]
-   * Padが持つAxisクラスを管理する
-   * 各AxisのポインタをID順に配列で保持
-   * Eventを受け取ることでポインタ経由でデータ更新
-   -----------------------------------------*/
-  class AxisData {
-   private:
-    AxisEvent event_;
-    std::vector<Axis*> list_;
-
-   public:
-    AxisData();
-    void resister(std::vector<Axis*> axes);
-    void update(AxisEvent event);
-    void clear();
-  };
-
-  /**--------------------------------------------
-   * [ EventHandler class ]
-   * PadReaderから送られたイベントを受け取る
-   * コントローラーのデータに整合するようにイベントを編集
-   * イベントの編集関数を各コントローラー用にオーバーライドして実装
-   ----------------------------------------------*/
-  class EventHandler {
-   protected:
-    PadEvent    event_;
-    ButtonEvent button_event_{0, bstate::OFF};
-    AxisEvent   axis_event_{0, 0};
-
-    virtual void handleButtonEvent() = 0;
-    virtual void handleAxisEvent() = 0;
-
-   public:
-    EventType   getEventType();
-    ButtonEvent getButtonEvent();
-    AxisEvent   getAxisEvent();
-    virtual void editEvent(PadEvent event) = 0;
-  };
-
-  inline EventType EventHandler::getEventType() { return this->event_.type; }
-
-  inline ButtonEvent EventHandler::getButtonEvent() { return this->button_event_; }
-
-  inline AxisEvent EventHandler::getAxisEvent() { return this->axis_event_; }
 
   /**-----------------------------------------------------
    * [ PadReader class ]
@@ -255,4 +101,180 @@ namespace pad {
   inline bool PadReader::isConnected() { return this->is_connected_; }
 
   inline PadEvent PadReader::getPadEvent() { return this->event_; }
+
+  /**--------------------------------------------
+   * [ EventHandler class ]
+   * PadReaderから送られたイベントを受け取る
+   * コントローラーのデータに整合するようにイベントを編集
+   * イベントの編集関数を各コントローラー用にオーバーライドして実装
+   ----------------------------------------------*/
+  class EventHandler {
+   protected:
+    PadEvent    event_;
+    ButtonEvent button_event_{0, bstate::OFF};
+    AxisEvent   axis_event_{0, 0};
+
+    virtual void handleButtonEvent() = 0;
+    virtual void handleAxisEvent() = 0;
+
+   public:
+    EventType     getEventType();
+    ButtonEvent   getButtonEvent();
+    AxisEvent     getAxisEvent();
+    virtual void  editEvent(PadReader& reader) = 0;
+  };
+
+  inline EventType EventHandler::getEventType() { return this->event_.type; }
+
+  inline ButtonEvent EventHandler::getButtonEvent() { return this->button_event_; }
+
+  inline AxisEvent EventHandler::getAxisEvent() { return this->axis_event_; }
+
+  /**----------------------------------------------
+   * [ Button class ]
+   * ユーザーにボタンの状態とその変化をデータとして提供する
+   * インターフェース的なイメージ，IDによりボタンと1対1対応
+   * ユーザー側はデータを書き換えれない
+   -----------------------------------------------*/
+
+  class ButtonData;
+
+  class Button {
+   protected:
+    const int    id_;
+    bool         state_{bstate::OFF};
+    ButtonAction action_{ButtonAction::None};
+
+    friend class ButtonData;
+
+   public:
+    Button(const int event_number);
+    Button& get();
+    int getID();
+    bool pressed();
+    bool pushed();
+    bool released();
+  };
+
+  inline Button& Button::get() { return *this; }
+
+  inline int Button::getID() { return this->id_; }
+
+  /**------------------------------------------
+   * [ Axis class ]
+   * スティック・ボタン深度の，可変値をデータとして提供
+   * その他Buttonクラスと同様の仕様
+   -------------------------------------------*/
+
+  class AxisData;
+
+  class Axis {
+   private:
+    const int id_;
+    int16_t   value_{0};
+
+    friend class AxisData;
+    
+   public:
+    Axis(int event_number);
+    Axis& get();
+    int getID();
+    int getValue();
+  };
+
+  inline Axis& Axis::get() { return *this; }
+
+  inline int Axis::getID() { return this->id_; }
+
+  /**--------------------------------
+   * [ TriggerButton class ]
+   * メインはButtonクラス(継承)
+   * 深度用のAxisクラスをデータとして持つ
+   * L2R2ボタンに採用
+   ---------------------------------*/
+  class TriggerButton: public Button {
+   private:
+    Axis depth_;
+
+    //friend void ButtonData::update(ButtonEvent event);
+
+   public:
+    TriggerButton(int b_id, int a_id);
+    int   getDepth();
+    Axis& getAxis(); 
+  };
+
+  inline int TriggerButton::getDepth() { return depth_.getValue(); }
+
+  inline Axis& TriggerButton::getAxis() { return (*this).depth_.get(); }
+
+  /**---------------------
+   * [ Stick class ]
+   * X軸Y軸の2つのAxisを持つ
+   -----------------------*/
+  class Stick {
+   public:
+    Axis x;
+    Axis y;
+
+    Stick(int x_id, int y_id);
+  };
+
+  /**----------------------------------------
+   * [ ButtonData class ]
+   * Padが持つButtonクラスを管理する
+   * 各ButtonのポインタをID順に配列で保持
+   * Eventを受け取ることでポインタ経由でデータ更新
+   -----------------------------------------*/
+  class ButtonData {
+   private:
+    ButtonEvent event_;
+    std::vector<Button*> list_{nullptr};
+
+   public:
+    ButtonData();
+    void resister(Button& button);
+    void update(ButtonEvent event);
+    void resetAction();
+    void clear();
+  };
+
+  /**----------------------------------------
+   * [ AxisData class ]
+   * Padが持つAxisクラスを管理する
+   * 各AxisのポインタをID順に配列で保持
+   * Eventを受け取ることでポインタ経由でデータ更新
+   -----------------------------------------*/
+  class AxisData {
+   private:
+    AxisEvent event_;
+    std::vector<Axis*> list_;
+
+   public:
+    AxisData();
+    void resister(Axis& axis);
+    void update(AxisEvent event);
+    void clear();
+  };
+
+  /**-------------------------------
+   * [ PadData class ]
+   * Button, Axisのデータを管理する
+   * EventManager経由でデータを入手
+   * 受け取ったAxisEventからデータを更新
+   ---------------------------------*/
+
+  class PadData {
+   private:
+    AxisData   axis_list_;
+    ButtonData button_list_;
+
+   public:  
+    void update(EventHandler& handler, bool event_flag);
+    void resister(Button& button);
+    void resister(Axis& axis);
+    void resister(TriggerButton t_button);
+    void clear();
+  };
+
 }

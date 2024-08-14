@@ -81,10 +81,10 @@ namespace pad {
       }
     } 
 
-    void PS5Handler::editEvent(PadEvent event) {
-      this->event_ = event;
+    void PS5Handler::editEvent(PadReader& reader) {
+      this->event_ = reader.getPadEvent();
 
-      switch (event.type) {
+      switch (event_.type) {
         case (EventType::BUTTON): {
           handleButtonEvent();
           break;
@@ -107,27 +107,34 @@ namespace pad {
         case (Connect::Bluetooth): device_name = dev::bluetooth; break;
       }
 
-      std::vector<Button*> buttons = {
-        &Cross, &Circle, &Triangle, &Square,
-        &L1, &R1, &L2, &R2, 
-        &Create, &Option, &PS, &L3, &R3,
-        &Left, &Right, &Up, &Down       
-      };
+      pad_.resister(Cross);
+      pad_.resister(Circle);
+      pad_.resister(Triangle);
+      pad_.resister(Square);
+      pad_.resister(L1);
+      pad_.resister(R1);
+      pad_.resister(L2);
+      pad_.resister(R2);
+      pad_.resister(Create);
+      pad_.resister(Option);
+      pad_.resister(PS);
+      pad_.resister(L3);
+      pad_.resister(R3);
+      pad_.resister(Left);
+      pad_.resister(Right);
+      pad_.resister(Up);
+      pad_.resister(Down);
 
-      std::vector<Axis*> axes = {
-        &Lstick.x, &Lstick.y, L2.getAxis(), &Rstick.x, &Rstick.y, R2.getAxis()       
-      };
+      pad_.resister(Lstick.x);
+      pad_.resister(Lstick.y);
+      pad_.resister(Rstick.x);
+      pad_.resister(Rstick.y);
 
       reader_.connect(device_name);
-      buttons_.resister(buttons);
-      axes_.resister(axes);
 
       for (int i = 0; i < dev::init_button_event_freq; i++) {
         reader_.readData();
       }
-
-      buttons_.clear();
-      axes_.clear();
 
       std::cout << "Device is initialized" << std::endl;
     }
@@ -138,26 +145,11 @@ namespace pad {
     }
 
     void DualSense::update() {
-      if (reader_.readData()) {   // イベントが発生
+      bool event_flag = reader_.readData();
 
-        handler_.editEvent(reader_.getPadEvent()); // Handlerでイベントの編集
-        buttons_.resetAction();
+      if (event_flag == true) handler_.editEvent(reader_);
 
-        switch (handler_.getEventType()) {  // イベントの種類でボタン・軸の処理分け
-          case (EventType::BUTTON): {
-            buttons_.update(handler_.getButtonEvent());
-            break;
-          }
-          case (EventType::AXIS): {
-            axes_.update(handler_.getAxisEvent());
-            break;
-          }
-          default: ;
-        }
-      }
-      else {
-        buttons_.resetAction(); // push, releaseを正しく動作させるために必ずリセット
-      }
+      pad_.update(handler_, event_flag);
     }
 
     bool DualSense::isConnected() { return this->reader_.isConnected(); }

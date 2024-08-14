@@ -2,130 +2,6 @@
 
 namespace pad {
 
-  /**--------------------------------
-   * [ Button class member function ]
-   ----------------------------------*/
-
-  Button::Button(int id): id_{id} {}
-
-  void Button::update(bool state, ButtonAction action) {
-    this->state_  = state;
-    this->action_ = action;
-  }
-
-  void Button::update(ButtonAction action) {
-    this->action_ = action;
-  }
-
-  bool Button::pressed() { return this->state_; }
-
-  bool Button::pushed() {
-    if (this->action_ == ButtonAction::Push)
-      return true;
-    else 
-      return false; 
-  }
-
-  bool Button::released() {
-    if (this->action_ == ButtonAction::Release)
-      return true;
-    else 
-      return false; 
-  }
-
-  /**------------------------------
-   * [ Axis class member function ]  
-   --------------------------------*/
-
-  Axis::Axis(int id): id_{id} {}
-
-  void Axis::update(int16_t value) {
-    this->value_ = value;
-  }
-  
-  int Axis::getValue() { return static_cast<int>(this->value_); }
-
-  /**---------------------------------------
-   * [ TriggerButton class member function ]
-   -----------------------------------------*/
-
-  TriggerButton::TriggerButton(int b_id, int a_id):
-    Button(b_id), depth_(a_id) {}
-
-  /**--------------------------------
-   * [ Stick class member function ]
-   ----------------------------------*/
-
-  Stick::Stick(int x_id, int y_id):
-    x(x_id), y(y_id) {} 
-
-  /**----------------------------------
-   * [ ButtonData class member function ]
-   ------------------------------------*/
-
-  ButtonData::ButtonData() {
-    this->event_ = {0, bstate::OFF};
-  }
-
-  void ButtonData::resister(std::vector<Button*> buttons) {
-    this->list_.resize(buttons.size(), nullptr);
-
-    for (auto b: buttons) {
-      this->list_.at(b->getID()) = b;
-    }
-  }
-
-  void ButtonData::update(ButtonEvent event) {
-    this->event_ = event;
-    ButtonAction action = ButtonAction::None;
-
-    switch (event.state) {
-      case (bstate::OFF): action = ButtonAction::Release; break;
-      case (bstate::ON):  action = ButtonAction::Push;    break;
-    }
-
-    this->list_[event_.id]->update(event_.state, action);
-  }
-
-  void ButtonData::resetAction() {
-    this->list_[this->event_.id]->update(ButtonAction::None);
-  }
-
-  void ButtonData::clear() {
-    for (auto b: this->list_) {
-      b->update(ButtonAction::None);
-    }
-  }
-
-  /**----------------------------------
-   * [ AxisData class member function ]
-   ------------------------------------*/
-
-  AxisData::AxisData() {
-    this->event_ = {0, 0};
-  }
-
-  void AxisData::resister(std::vector<Axis*> axes) {
-    this->list_.resize(axes.size(), nullptr);
-
-    for (auto a: axes) {
-      this->list_.at(a->getID()) = a;
-    }
-  }
-
-  void AxisData::update(AxisEvent event) {
-    this->event_ = event;
-
-    this->list_[event_.id]->update(event_.value);
-  }
-
-  void AxisData::clear() {
-    for (auto a: this->list_) {
-      a->update(0);
-    }
-  }
-
-
   /**------------------------------------
    * [ PadReader class member function ]
    -------------------------------------*/
@@ -216,5 +92,156 @@ namespace pad {
   }
 
   void PadReader::disconnect() { close(devfile_.fd); }
+
+  /**--------------------------------
+   * [ Button class member function ]
+   ----------------------------------*/
+
+  Button::Button(const int event_number): id_{event_number} {}
+
+  bool Button::pressed() { return this->state_; }
+
+  bool Button::pushed() {
+    if (this->action_ == ButtonAction::Push)
+      return true;
+    else 
+      return false; 
+  }
+
+  bool Button::released() {
+    if (this->action_ == ButtonAction::Release)
+      return true;
+    else 
+      return false; 
+  }
+
+  /**------------------------------
+   * [ Axis class member function ]  
+   --------------------------------*/
+
+  Axis::Axis(const int event_number): id_{event_number} {}
+  
+  int Axis::getValue() { return static_cast<int>(this->value_); }
+
+  /**---------------------------------------
+   * [ TriggerButton class member function ]
+   -----------------------------------------*/
+
+  TriggerButton::TriggerButton(int b_id, int a_id):
+    Button(b_id), depth_(a_id) {}
+
+  /**--------------------------------
+   * [ Stick class member function ]
+   ----------------------------------*/
+
+  Stick::Stick(int x_id, int y_id):
+    x(x_id), y(y_id) {} 
+
+  /**----------------------------------
+   * [ ButtonData class member function ]
+   ------------------------------------*/
+
+  ButtonData::ButtonData() {
+    this->event_ = {0, bstate::OFF};
+  }
+
+  void ButtonData::resister(Button& button) {
+    if (button.id_ >= list_.size()) 
+      list_.resize(button.id_ + 1, nullptr);
+
+    list_.at(button.id_) = &button; 
+  }
+
+  void ButtonData::update(ButtonEvent event) {
+    this->event_ = event;
+    ButtonAction action = ButtonAction::None;
+
+    switch (event.state) {
+      case (bstate::OFF): action = ButtonAction::Release; break;
+      case (bstate::ON):  action = ButtonAction::Push;    break;
+    }
+
+    // this->list_[event_.id]->update(event_.state, action);
+
+    list_[event_.id]->state_  = event_.state;
+    list_[event_.id]->action_ = action; 
+  }
+
+  void ButtonData::resetAction() {
+    list_[this->event_.id]->action_ = ButtonAction::None;
+  }
+
+  void ButtonData::clear() {
+    for (auto b: this->list_) {
+      b->action_ = ButtonAction::None;
+    }
+  }
+
+  /**----------------------------------
+   * [ AxisData class member function ]
+   ------------------------------------*/
+
+  AxisData::AxisData() {
+    this->event_ = {0, 0};
+  }
+
+  void AxisData::resister(Axis& axis) {
+    if (axis.id_ >= list_.size())
+      list_.resize(axis.id_ + 1, nullptr);
+
+    list_[axis.id_] = &axis;
+  }
+
+  void AxisData::update(AxisEvent event) {
+    this->event_ = event;
+
+    this->list_[event_.id]->value_ = event_.value;
+  }
+
+  void AxisData::clear() {
+    for (auto a: this->list_) {
+      a->value_ = 0;
+    }
+  }
+
+  /**
+   * [ PadData class member function ]
+   */
+
+  void PadData::update(EventHandler& handler, bool event_flag) {
+    button_list_.resetAction();
+
+    if (event_flag == false) return;
+
+    switch (handler.getEventType()) {
+      case (EventType::BUTTON): {
+        button_list_.update(handler.getButtonEvent());
+        break;
+      }
+      case (EventType::AXIS): {
+        axis_list_.update(handler.getAxisEvent());
+        break;
+      }
+      default: ;
+    }
+  }
+
+  void PadData::resister(Button& button) {
+    button_list_.resister(button);
+  }
+
+  void PadData::resister(Axis& axis) {
+    axis_list_.resister(axis);
+  }
+
+  void PadData::resister(TriggerButton t_button) {
+    button_list_.resister(t_button);
+    axis_list_.resister(t_button.getAxis());
+  }
+
+  void PadData::clear() {
+    button_list_.clear();
+    axis_list_.clear();
+  }
 
 }
