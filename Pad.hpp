@@ -273,7 +273,7 @@ namespace pad {
     void update(EventHandler& handler, bool event_flag);
     void resister(Button& button);
     void resister(Axis& axis);
-    void resister(TriggerButton t_button);
+    void resister(TriggerButton& t_button);
     void clear();
   };
 

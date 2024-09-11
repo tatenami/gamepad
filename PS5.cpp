@@ -132,9 +132,9 @@ namespace pad {
 
       reader_.connect(device_name);
 
-      for (int i = 0; i < dev::init_button_event_freq; i++) {
-        reader_.readData();
-      }
+      // for (int i = 0; i < dev::init_button_event_freq; i++) {
+      //   reader_.readData();
+      // }
 
       std::cout << "Device is initialized" << std::endl;
     }

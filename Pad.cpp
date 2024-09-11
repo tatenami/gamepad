@@ -234,7 +234,7 @@ namespace pad {
     axis_list_.resister(axis);
   }
 
-  void PadData::resister(TriggerButton t_button) {
+  void PadData::resister(TriggerButton& t_button) {
     button_list_.resister(t_button);
     axis_list_.resister(t_button.getAxis());
   }
