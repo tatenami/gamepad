@@ -22,12 +22,12 @@ namespace pad {
     const std::string devlist_path = " /proc/bus/input/devices";
   }
 
-  enum class EventType {
-    None, Button, Axis
+  enum class Connect {
+    USB, Bluetooth
   };
 
-  enum class ButtonAction {
-    None, Push, Release
+  enum class EventType {
+    None, Button, Axis
   };
 
   /**
@@ -235,7 +235,34 @@ namespace pad {
     float angleDeg();
     float angleRad();
   };
+  
+  template <class T>
+  using EventEditor = PadEventEditor<T>;
 
+  template <typename T>
+  class GamePad {
+   protected:
+    PadReader        reader_;
+    EventEditor<T> handler_;
+    ButtonData buttons_;
+    AxisData   axes_;
+    bool is_connected_{false};
+
+   public:
+    GamePad() {
+      handler_ = std::make_unique<T>();
+    }
+
+    ~GamePad() {
+      reader_.disconnect();
+    }
+
+    bool isConnected() {
+      return is_connected_;
+    }
+    
+    virtual void update() = 0;
+  };
 }
 
 #endif // PAD_H
