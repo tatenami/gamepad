@@ -5,9 +5,11 @@ namespace pad {
   namespace ps5 {
     const uint16_t default_deadzone = 5;
 
-    PS5Handler::PS5Handler() {
+    PS5Handler::PS5Handler(uint32_t axis_max = std::numeric_limits<uint8_t>::max()):
+      PadEventEditor(axis_max)
+    {
 
-    }
+    } 
 
     void PS5Handler::editCrossXData(int32_t val) {
       if (val > 0) {
@@ -64,7 +66,7 @@ namespace pad {
 
       if (id != id::L2depth && id != id::R2depth) {
         val *= 2;
-        val -= axis_range_;
+        val -= axis_max_;
       }
 
       switch (id) {
@@ -75,7 +77,7 @@ namespace pad {
         default: {
           if (abs(val) < deadzone_) val = 0;
           axis_event_.id = id;
-          axis_event_.value = static_cast<float>(val) / axis_range_;
+          axis_event_.value = static_cast<float>(val) / axis_max_;
         }
       }
     }

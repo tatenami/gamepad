@@ -112,18 +112,15 @@ namespace pad {
 
   /* [ PadReader member functions ] */
 
-  template <typename T>
-  PadEventEditor<T>::PadEventEditor() {
-    this->axis_range_ = std::numeric_limits<T>::max();
+  PadEventEditor::PadEventEditor(uint32_t axis_max) {
+    this->axis_max_ = axis_max;
   }
 
-  template <typename T>
-  void PadEventEditor<T>::setDeadzone(float deadzone) {
+  void PadEventEditor::setDeadzone(float deadzone) {
     this->deadzone_ = deadzone;
   }
   
-  template <typename T>
-  void PadEventEditor<T>::editEvent(PadReader& reader) {
+  void PadEventEditor::editEvent(PadReader& reader) {
     this->event_ = reader.getPadEvent();
 
     switch (event_.type) {
@@ -138,8 +135,7 @@ namespace pad {
     }
   }
 
-  template <typename T>
-  void PadEventEditor<T>::addCodeIdEntry(uint event_code, uint8_t ui_id) {
+  void PadEventEditor::addCodeIdEntry(uint event_code, uint8_t ui_id) {
     this->id_map_[event_code] = ui_id;
   }
 
@@ -161,6 +157,13 @@ namespace pad {
     return this->list_;
   }
 
+
+  ButtonData::ButtonData(uint total_input):
+    InputData(total_input)
+  {
+    this->type_ = EventType::Button;
+  }
+
   void ButtonData::update(ButtonEvent event) {
     update_flag_ = true;
     event_ = event;
@@ -173,6 +176,13 @@ namespace pad {
     }
   }
 
+
+
+  AxisData::AxisData(uint total_input):
+    InputData(total_input) 
+  {
+    this->type_ = EventType::Axis;
+  }
 
   void AxisData::update(AxisEvent event) {
     event_ = event;
@@ -268,5 +278,32 @@ namespace pad {
 
   float Stick::angleRad() {
     return atan2f(y.getValue(), x.getValue());
+  }
+
+
+  void BasePad::update() {
+
+    if (!this->reader_.isConnected()) {
+      buttons_.clear();
+      axes_.clear();
+      return;
+    }
+
+    if (this->reader_.readEvent()) {
+      this->handler_->editEvent(reader_);
+
+      EventType type = handler_->getEventType();
+      switch (type) {
+        case EventType::Button: {
+          this->buttons_.update(handler_->getButtonEvent());
+          break;
+        }
+        case EventType::Axis: {
+          this->axes_.update(handler_->getAxisEvent());
+          break;
+        }
+      }
+    }
+
   }
 }

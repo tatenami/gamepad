@@ -58,7 +58,6 @@ namespace pad {
     void openDeviceFile();
 
    public:
-    PadReader();
     ~PadReader();
 
     bool connect(std::string devname);
@@ -89,7 +88,7 @@ namespace pad {
    * @brief 
    * 
    */
-  template <typename T>
+
   class PadEventEditor {
    protected:
     std::unordered_map<uint, uint8_t> id_map_;
@@ -97,13 +96,13 @@ namespace pad {
     ButtonEvent button_event_{0, false};
     AxisEvent   axis_event_{0, 0.0};
     float       deadzone_{0.0};
-    uint32_t    axis_range_;
+    uint32_t    axis_max_;
 
     virtual void editButtonEvent() = 0;
     virtual void editAxisEvent() = 0;
 
    public:
-    PadEventEditor();
+    PadEventEditor(uint32_t axis_max);
     void setDeadzone(float deadzone); 
     void editEvent(PadReader& reader);
     void addCodeIdEntry(uint event_code, uint8_t ui_id);
@@ -130,6 +129,7 @@ namespace pad {
   template <typename T>
   class InputData {
    protected: 
+    EventType type_;
     std::vector<T> list_; 
 
    public:
@@ -144,7 +144,7 @@ namespace pad {
     ButtonEvent event_{0, false};
 
    public:
-    using InputData::InputData;
+    ButtonData(uint total_input);
     void update(ButtonEvent event);
     void clear() override;
 
@@ -166,7 +166,7 @@ namespace pad {
     AxisEvent event_{0, 0.0};
 
    public:  
-    using InputData::InputData;
+    AxisData(uint total_input);
     void update(AxisEvent event);
     void clear() override;
 
@@ -174,7 +174,6 @@ namespace pad {
       return this->list_.at(id);
     }
   };  
-
 
   /**
    * @brief 
@@ -236,24 +235,24 @@ namespace pad {
     float angleRad();
   };
   
-  template <class T>
-  using EventEditor = PadEventEditor<T>;
 
-  template <typename T>
-  class GamePad {
+  class BasePad {
    protected:
-    PadReader        reader_;
-    EventEditor<T> handler_;
-    ButtonData buttons_;
-    AxisData   axes_;
+    std::unique_ptr<PadEventEditor> handler_;
+    PadReader   reader_;
+    ButtonData  buttons_;
+    AxisData    axes_;
     bool is_connected_{false};
 
    public:
-    GamePad() {
-      handler_ = std::make_unique<T>();
+    BasePad(uint b_total, uint a_total):
+      buttons_(b_total),
+      axes_(a_total)
+    {
+
     }
 
-    ~GamePad() {
+    ~BasePad() {
       reader_.disconnect();
     }
 
@@ -261,8 +260,7 @@ namespace pad {
       return is_connected_;
     }
     
-    virtual void update() = 0;
+    virtual void update();
   };
 }
-
 #endif // PAD_H
