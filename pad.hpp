@@ -234,13 +234,11 @@ namespace pad {
     float angleDeg();
     float angleRad();
   };
-
-  using EventHandler_ptr = std::unique_ptr<PadEventHandler>;
   
   template <class Handler>
   class BasePad {
    protected:
-    EventHandler_ptr handler_;
+    std::unique_ptr<PadEventHandler> handler_;
     PadReader   reader_;
     ButtonData  buttons_;
     AxisData    axes_;
