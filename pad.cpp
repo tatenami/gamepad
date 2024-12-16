@@ -79,7 +79,7 @@ namespace pad {
     }
 
     connection_ = is_readable;
-    event_ = {EventType::None, 0, 0};
+    event_ = {0, 0, EventType::None};
 
     read_stream.close();
     return is_readable;
@@ -112,15 +112,15 @@ namespace pad {
 
   /* [ PadReader member functions ] */
 
-  PadEventEditor::PadEventEditor(uint32_t axis_max) {
+  PadEventHandler::PadEventHandler(uint32_t axis_max) {
     this->axis_max_ = axis_max;
   }
 
-  void PadEventEditor::setDeadzone(float deadzone) {
+  void PadEventHandler::setDeadzone(float deadzone) {
     this->deadzone_ = deadzone;
   }
   
-  void PadEventEditor::editEvent(PadReader& reader) {
+  void PadEventHandler::editEvent(PadReader& reader) {
     this->event_ = reader.getPadEvent();
 
     switch (event_.type) {
@@ -135,7 +135,7 @@ namespace pad {
     }
   }
 
-  void PadEventEditor::addCodeIdEntry(uint event_code, uint8_t ui_id) {
+  void PadEventHandler::addCodeIdEntry(uint event_code, uint8_t ui_id) {
     this->id_map_[event_code] = ui_id;
   }
 
@@ -280,26 +280,31 @@ namespace pad {
     return atan2f(y.getValue(), x.getValue());
   }
 
+  template <class Handler>
+  BasePad<Handler>::BasePad(uint b_total, uint a_total) {
+    this->handler_ = std::make_unique<Handler>();
+  }
 
-  void BasePad::update() {
+  template <class Handler>
+  void BasePad<Handler>::update() {
 
-    if (!this->reader_.isConnected()) {
+    if (!reader_.isConnected()) {
       buttons_.clear();
       axes_.clear();
       return;
     }
 
     if (this->reader_.readEvent()) {
-      this->handler_->editEvent(reader_);
+      (*handler_).editEvent(reader_);
 
-      EventType type = handler_->getEventType();
+      EventType type = (*handler_).getEventType();
       switch (type) {
         case EventType::Button: {
-          this->buttons_.update(handler_->getButtonEvent());
+          buttons_.update((*handler_).getButtonEvent());
           break;
         }
         case EventType::Axis: {
-          this->axes_.update(handler_->getAxisEvent());
+          axes_.update((*handler_).getAxisEvent());
           break;
         }
       }

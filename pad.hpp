@@ -35,9 +35,9 @@ namespace pad {
    * 
    */
   struct PadEvent {
-    EventType type;
     uint16_t  code;
     int32_t   value;
+    EventType type;
   };
 
   /**
@@ -89,7 +89,7 @@ namespace pad {
    * 
    */
 
-  class PadEventEditor {
+  class PadEventHandler {
    protected:
     std::unordered_map<uint, uint8_t> id_map_;
     PadEvent    event_;
@@ -102,7 +102,7 @@ namespace pad {
     virtual void editAxisEvent() = 0;
 
    public:
-    PadEventEditor(uint32_t axis_max);
+    PadEventHandler(uint32_t axis_max);
     void setDeadzone(float deadzone); 
     void editEvent(PadReader& reader);
     void addCodeIdEntry(uint event_code, uint8_t ui_id);
@@ -234,23 +234,20 @@ namespace pad {
     float angleDeg();
     float angleRad();
   };
-  
 
+  using EventHandler_ptr = std::unique_ptr<PadEventHandler>;
+  
+  template <class Handler>
   class BasePad {
    protected:
-    std::unique_ptr<PadEventEditor> handler_;
+    EventHandler_ptr handler_;
     PadReader   reader_;
     ButtonData  buttons_;
     AxisData    axes_;
     bool is_connected_{false};
 
    public:
-    BasePad(uint b_total, uint a_total):
-      buttons_(b_total),
-      axes_(a_total)
-    {
-
-    }
+    BasePad(uint b_total, uint a_total);
 
     ~BasePad() {
       reader_.disconnect();
