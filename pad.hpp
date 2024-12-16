@@ -219,7 +219,7 @@ namespace pad {
     Axis depth_;
 
    public:
-    Trigger(uint8_t b_event_num, uint8_t a_event_num);
+    Trigger(uint8_t button_id, uint8_t axis_id);
     float getDepth();
     Axis& getAxis();
   };
@@ -230,7 +230,7 @@ namespace pad {
     Axis x;
     Axis y;
 
-    Stick(uint8_t x_event_num, uint8_t y_event_num);
+    Stick(uint8_t x_id, uint8_t y_id);
     float angleDeg();
     float angleRad();
   };

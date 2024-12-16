@@ -6,24 +6,30 @@ namespace pad {
     const uint16_t default_deadzone = 5;
 
     PS5Handler::PS5Handler(uint32_t axis_max = std::numeric_limits<uint8_t>::max()):
-      PadEventEditor(axis_max)
+      PadEventHandler(axis_max)
     {
 
     } 
 
     void PS5Handler::editCrossXData(int32_t val) {
       if (val > 0) {
-        this->pre_crossXid_ = id::right;
-        button_event_ = {id::right, true};
+        this->pre_crossXid_ = ButtonID::right;
+        button_event_ = {ButtonID::right, true};
       }
       else if (val < 0)  {
-        this->pre_crossXid_ = id::left;
-        button_event_ = {id::left, true};
+        this->pre_crossXid_ = ButtonID::left;
+        button_event_ = {ButtonID::left, true};
       }
       else {
         switch (this->pre_crossXid_) {
-          case (id::right): button_event_.id = id::right; break;
-          case (id::left):  button_event_.id = id::left;  break;
+          case (ButtonID::right): {
+            button_event_.id = ButtonID::right; 
+            break;
+          }
+          case (ButtonID::left): {
+            button_event_.id = ButtonID::left;  
+            break;
+          }
         }
         button_event_.state = false;
       }
@@ -31,17 +37,23 @@ namespace pad {
 
     void PS5Handler::editCrossYData(int32_t val) {
       if (val > 0) {
-        this->pre_crossXid_ = id::down;
-        button_event_ = {id::down, true};
+        this->pre_crossXid_ = ButtonID::down;
+        button_event_ = {ButtonID::down, true};
       }
       else if (val < 0)  {
-        this->pre_crossXid_ = id::up;
-        button_event_ = {id::up, true};
+        this->pre_crossXid_ = ButtonID::up;
+        button_event_ = {ButtonID::up, true};
       }
       else {
         switch (this->pre_crossXid_) {
-          case (id::down): button_event_.id = id::down; break;
-          case (id::up):   button_event_.id = id::up;  break;
+          case (ButtonID::down): {
+            button_event_.id = ButtonID::down; 
+            break;
+          }
+          case (ButtonID::up): {  
+            button_event_.id = ButtonID::up;  
+            break;
+          }
         }
         button_event_.state = false;
       }
@@ -52,26 +64,26 @@ namespace pad {
       uint8_t id  = id_map_[event_.code]; 
 
       switch (id) {
-        case (id::crossX): {
+        case (AxisID::crossX): {
           event_.type = EventType::Button;
           editCrossXData(val);
           return;
         }
-        case (id::crossY): {
+        case (AxisID::crossY): {
           event_.type = EventType::Button;
           editCrossYData(val);
           return;
         }
       }
 
-      if (id != id::L2depth && id != id::R2depth) {
+      if (id != AxisID::L2depth && id != AxisID::R2depth) {
         val *= 2;
         val -= axis_max_;
       }
 
       switch (id) {
-        case (id::leftY):
-        case (id::rightY): {
+        case (AxisID::leftY):
+        case (AxisID::rightY): {
           val *= -1;
         }
         default: {

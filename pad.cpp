@@ -162,6 +162,7 @@ namespace pad {
     InputData(total_input)
   {
     this->type_ = EventType::Button;
+    this->clear();
   }
 
   void ButtonData::update(ButtonEvent event) {
@@ -182,6 +183,7 @@ namespace pad {
     InputData(total_input) 
   {
     this->type_ = EventType::Axis;
+    this->clear();
   }
 
   void AxisData::update(AxisEvent event) {
@@ -252,9 +254,9 @@ namespace pad {
   }
 
 
-  Trigger::Trigger(uint8_t b_event_num, uint8_t a_event_num): 
-    Button(b_event_num),
-    depth_{a_event_num}
+  Trigger::Trigger(uint8_t button_id, uint8_t axis_id): 
+    Button(button_id),
+    depth_(axis_id)
   {
 
   }
@@ -264,9 +266,9 @@ namespace pad {
   Axis& Trigger::getAxis() { return this->depth_.get(); }
 
 
-  Stick::Stick(uint8_t x_event_num, uint8_t y_event_num):
-    x(x_event_num),
-    y(y_event_num)
+  Stick::Stick(uint8_t x_id, uint8_t y_id):
+    x(x_id),
+    y(y_id)
   {
 
   }
@@ -289,6 +291,7 @@ namespace pad {
   void BasePad<Handler>::update() {
 
     if (!reader_.isConnected()) {
+      this->is_connected_ = false;
       buttons_.clear();
       axes_.clear();
       return;

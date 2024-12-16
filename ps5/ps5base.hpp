@@ -7,14 +7,14 @@ namespace pad {
 
   namespace ps5 {
     namespace dev {
-      const std::string usb = "\"Sony Interactive Entertainment DualSense Wireless Controller\"";
-      const std::string bluetooth = "\"DualSense Wireless Controller\"";
+      const std::string usb_name = "\"Sony Interactive Entertainment DualSense Wireless Controller\"";
+      const std::string bluetooth_name = "\"DualSense Wireless Controller\"";
 
-      const int total_button_num = 17;
-      const int total_axis_num = 6;
+      const int button_num = 17;
+      const int axis_num = 6;
     }
 
-    namespace id {
+    namespace ButtonID {
       // Button 
       const int cross    = 0;
       const int circle   = 1;
@@ -33,7 +33,9 @@ namespace pad {
       const int right    = 14;
       const int up       = 15;
       const int down     = 16;
+    }
 
+    namespace AxisID {
       // Axis
       const int leftX   = 0;
       const int leftY   = 1;
@@ -45,7 +47,7 @@ namespace pad {
       const int crossY  = 7;
     }
 
-    class PS5Handler: public PadEventEditor {
+    class PS5Handler: public PadEventHandler {
      private:
       int pre_crossXid_;
       int pre_crossYid_;
