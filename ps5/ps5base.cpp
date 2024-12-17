@@ -5,11 +5,30 @@ namespace pad {
   namespace ps5 {
     const uint16_t default_deadzone = 5;
 
-    PS5Handler::PS5Handler(uint32_t axis_max = std::numeric_limits<uint8_t>::max()):
-      PadEventHandler(axis_max)
-    {
+    PS5Handler::PS5Handler() {
+      addCodeIdEntry(BTN_SOUTH,  ButtonID::cross);
+      addCodeIdEntry(BTN_EAST,   ButtonID::circle);
+      addCodeIdEntry(BTN_NORTH,  ButtonID::triangle);
+      addCodeIdEntry(BTN_WEST,   ButtonID::square);
+      addCodeIdEntry(BTN_TL,     ButtonID::L1);
+      addCodeIdEntry(BTN_TR,     ButtonID::R1);
+      addCodeIdEntry(BTN_TL2,    ButtonID::L2);
+      addCodeIdEntry(BTN_TR2,    ButtonID::R2);
+      addCodeIdEntry(BTN_SELECT, ButtonID::create);
+      addCodeIdEntry(BTN_START,  ButtonID::option);
+      addCodeIdEntry(BTN_MODE,   ButtonID::ps);
+      addCodeIdEntry(BTN_THUMBL, ButtonID::L3);
+      addCodeIdEntry(BTN_THUMBR, ButtonID::R3);
 
-    } 
+      addCodeIdEntry(ABS_X,  AxisID::leftX);
+      addCodeIdEntry(ABS_Y,  AxisID::leftY);
+      addCodeIdEntry(ABS_RX, AxisID::rightX);
+      addCodeIdEntry(ABS_RY, AxisID::rightY);
+      addCodeIdEntry(ABS_Z,  AxisID::L2depth);
+      addCodeIdEntry(ABS_RZ, AxisID::R2depth);
+      addCodeIdEntry(ABS_HAT0X, AxisID::crossX);
+      addCodeIdEntry(ABS_HAT0Y, AxisID::crossY);
+    }
 
     void PS5Handler::editCrossXData(int32_t val) {
       if (val > 0) {

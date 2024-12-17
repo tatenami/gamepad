@@ -112,33 +112,6 @@ namespace pad {
 
   /* [ PadReader member functions ] */
 
-  PadEventHandler::PadEventHandler(uint32_t axis_max) {
-    this->axis_max_ = axis_max;
-  }
-
-  void PadEventHandler::setDeadzone(float deadzone) {
-    this->deadzone_ = deadzone;
-  }
-  
-  void PadEventHandler::editEvent(PadReader& reader) {
-    this->event_ = reader.getPadEvent();
-
-    switch (event_.type) {
-      case (EventType::Button): {
-        editButtonEvent();
-        break;
-      }
-      case (EventType::Axis): {
-        editAxisEvent();
-        break;
-      }
-    }
-  }
-
-  void PadEventHandler::addCodeIdEntry(uint event_code, uint8_t ui_id) {
-    this->id_map_[event_code] = ui_id;
-  }
-
   /* [ PadUI member functions ] */
 
   PadUI::PadUI(const uint8_t id): id_{id} {}
@@ -282,36 +255,5 @@ namespace pad {
     return atan2f(y.getValue(), x.getValue());
   }
 
-  template <class Handler>
-  BasePad<Handler>::BasePad(uint b_total, uint a_total) {
-    this->handler_ = std::make_unique<Handler>();
-  }
 
-  template <class Handler>
-  void BasePad<Handler>::update() {
-
-    if (!reader_.isConnected()) {
-      this->is_connected_ = false;
-      buttons_.clear();
-      axes_.clear();
-      return;
-    }
-
-    if (this->reader_.readEvent()) {
-      (*handler_).editEvent(reader_);
-
-      EventType type = (*handler_).getEventType();
-      switch (type) {
-        case EventType::Button: {
-          buttons_.update((*handler_).getButtonEvent());
-          break;
-        }
-        case EventType::Axis: {
-          axes_.update((*handler_).getAxisEvent());
-          break;
-        }
-      }
-    }
-
-  }
 }

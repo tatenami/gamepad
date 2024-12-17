@@ -7,7 +7,7 @@ namespace pad {
 
   namespace ps5 {
 
-    class DualSense: BasePad<PS5Handler> {
+    class DualSense: public BasePad<PS5Handler> {
      public:
       Button Cross    {ButtonID::cross};
       Button Circle   {ButtonID::circle};
@@ -33,7 +33,6 @@ namespace pad {
 
 
       DualSense(Connect connect_type);
-      using BasePad::update;
     };
 
   }

@@ -47,7 +47,7 @@ namespace pad {
       const int crossY  = 7;
     }
 
-    class PS5Handler: public PadEventHandler {
+    class PS5Handler: public PadEventHandler<uint8_t> {
      private:
       int pre_crossXid_;
       int pre_crossYid_;
@@ -58,7 +58,7 @@ namespace pad {
       void editAxisEvent() override;
 
      public:
-      PS5Handler(uint32_t axis_max); 
+      PS5Handler();
     };
   }
 }
