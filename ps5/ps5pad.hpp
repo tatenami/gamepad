@@ -1,6 +1,7 @@
 #ifndef PS5_PAD_H
 #define PS5_PAD_H
 
+#include "pad.hpp"
 #include "ps5base.hpp"
 
 namespace pad {
