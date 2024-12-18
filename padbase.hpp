@@ -196,10 +196,5 @@ namespace pad {
       return this->list_.at(id);
     }
   };  
-
-  /**
-   * @brief 
-   * 
-   */
 }
 #endif // PAD_H
