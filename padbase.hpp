@@ -88,42 +88,18 @@ namespace pad {
    * @brief 
    * 
    */
-  template <typename AxisType>
-  class PadEventHandler {
+  class PadEventEditor {
    protected:
     std::unordered_map<uint, uint8_t> id_map_;
     PadEvent    event_;
     ButtonEvent button_event_{0, false};
     AxisEvent   axis_event_{0, 0.0};
-    float       deadzone_{0.0};
-    uint32_t    axis_max_;
 
     virtual void editButtonEvent() = 0;
     virtual void editAxisEvent() = 0;
 
    public:
-    PadEventHandler() {
-      this->axis_max_ = std::numeric_limits<AxisType>::max();
-    }
-
-    void setDeadzone(float deadzone) {
-      this->deadzone_ = deadzone;
-    }
-    
-    void editEvent(PadReader& reader) {
-      this->event_ = reader.getPadEvent();
-
-      switch (event_.type) {
-        case (EventType::Button): {
-          editButtonEvent();
-          break;
-        }
-        case (EventType::Axis): {
-          editAxisEvent();
-          break;
-        }
-      }
-    }
+    void editEvent(PadReader& reader);
 
     void addCodeIdEntry(uint event_code, uint8_t ui_id) {
       this->id_map_[event_code] = ui_id;
@@ -156,8 +132,9 @@ namespace pad {
 
    public:
     InputData(uint total_input);
-    virtual void clear() = 0;
     const std::vector<T> getVector();
+    virtual void clear() = 0;
+    virtual void update(PadEventEditor& editor) = 0;
   };
 
   class ButtonData: public InputData<bool> {
@@ -167,8 +144,8 @@ namespace pad {
 
    public:
     ButtonData(uint total_input);
-    void update(ButtonEvent event);
     void clear() override;
+    void update(PadEventEditor& editor) override;
 
     inline bool IDUpdated(uint8_t id) {
       return update_flag_ && (event_.id == id);
@@ -189,8 +166,8 @@ namespace pad {
 
    public:  
     AxisData(uint total_input);
-    void update(AxisEvent event);
     void clear() override;
+    void update(PadEventEditor& editor) override;
 
     inline float getValue(uint8_t id) {
       return this->list_.at(id);

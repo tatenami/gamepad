@@ -61,10 +61,9 @@ namespace pad {
     float angleRad();
   };
   
-  template <class Handler>
   class BasePad {
    protected:
-    std::unique_ptr<Handler> handler_;
+    std::unique_ptr<PadEventEditor> editor_; 
     PadReader   reader_;
     ButtonData  buttons_;
     AxisData    axes_;
@@ -75,7 +74,7 @@ namespace pad {
       buttons_(b_total),
       axes_(a_total)
     {
-      this->handler_ = std::make_unique<Handler>();
+      this->editor_ = std::make_unique<PadEventEditor>();
     }
 
     ~BasePad() {
@@ -97,16 +96,16 @@ namespace pad {
       }
 
       if (this->reader_.readEvent()) {
-        (*handler_).editEvent(reader_);
+        editor_->editEvent(reader_);
 
-        EventType type = (*handler_).getEventType();
+        EventType type = editor_->getEventType();
         switch (type) {
           case EventType::Button: {
-            buttons_.update((*handler_).getButtonEvent());
+            buttons_.update(*editor_);
             break;
           }
           case EventType::Axis: {
-            axes_.update((*handler_).getAxisEvent());
+            axes_.update(*editor_);
             break;
           }
         }

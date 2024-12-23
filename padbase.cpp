@@ -109,4 +109,20 @@ namespace pad {
       return false;
     }   
   }
+
+
+  void PadEventEditor::editEvent(PadReader& reader) {
+    this->event_ = reader.getPadEvent();
+
+    switch (event_.type) {
+      case (EventType::Button): {
+        editButtonEvent();
+        break;
+      }
+      case (EventType::Axis): {
+        editAxisEvent();
+        break;
+      }
+    }
+  }
 }

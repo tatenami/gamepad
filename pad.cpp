@@ -28,9 +28,9 @@ namespace pad {
     this->clear();
   }
 
-  void ButtonData::update(ButtonEvent event) {
+  void ButtonData::update(PadEventEditor& editor) {
     update_flag_ = true;
-    event_ = event;
+    event_ = editor.getButtonEvent();
     list_.at(event_.id) = event_.state;
   }
 
@@ -49,8 +49,8 @@ namespace pad {
     this->clear();
   }
 
-  void AxisData::update(AxisEvent event) {
-    event_ = event;
+  void AxisData::update(PadEventEditor& editor) {
+    event_ = editor.getAxisEvent();
     list_.at(event_.id) = event_.value;
   }
 
