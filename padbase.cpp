@@ -1,4 +1,4 @@
-#include "pad.hpp"
+#include "padbase.hpp"
 
 namespace pad {
 
@@ -23,7 +23,7 @@ namespace pad {
     }
 
     if (!is_found) {
-      throw std::string("Fail to find target device");
+      throw ErrorCode::FindDeviceName;
     }
   }
 
@@ -42,7 +42,7 @@ namespace pad {
       this->path += smatch[0].str();
     }
     else {
-      throw std::string("Fail to find device file");
+      throw ErrorCode::FindDeviceFile;
     }
   }
 
@@ -51,7 +51,7 @@ namespace pad {
     this->fd_ = open(path.c_str(), O_RDONLY | O_NONBLOCK);
 
     if (this->fd_ == -1) {
-      throw std::string("Fail to open device file");
+      throw ErrorCode::OpenDeviceFile;
     }
   }
 
@@ -73,9 +73,10 @@ namespace pad {
       findDeviceHandler(read_stream);
       openDeviceFile();
       is_readable = true; 
+      code_ = ErrorCode::None;
     }
-    catch (std::string msg) {
-      std::cout << "[ ERROR ] -> [ " << msg << " ]" << std::endl;
+    catch (ErrorCode code) {
+      this->code_ = code;
     }
 
     connection_ = is_readable;
@@ -111,6 +112,14 @@ namespace pad {
   }
 
 
+  void PadEventEditor::addCodeIdEntry(uint event_code, uint8_t ui_id) {
+    this->id_map_[event_code] = ui_id;
+  }
+
+  void PadEventEditor::setDeadZone(float deadzone) {
+    this->deadzone_ = deadzone;
+  }
+
   void PadEventEditor::editEvent(PadReader& reader) {
     this->event_ = reader.getPadEvent();
 
@@ -123,6 +132,51 @@ namespace pad {
         editAxisEvent();
         break;
       }
+    }
+  }
+
+
+    /* [ InputData member functions ] */
+
+  ButtonData::ButtonData(uint total_input):
+    InputData(total_input)
+  {
+    this->type_ = EventType::Button;
+    this->clear();
+  }
+
+  void ButtonData::clear() {
+    for (auto e: this->list_) {
+      e = false;
+    }
+  }
+
+  void ButtonData::update(PadEventEditor& editor) {
+    if (editor.getEventType() == EventType::Button) {
+      update_flag_ = true;
+      event_ = editor.getButtonEvent();
+      list_[event_.id] = event_.state;
+    }
+  }
+
+
+  AxisData::AxisData(uint total_input):
+    InputData(total_input) 
+  {
+    this->type_ = EventType::Axis;
+    this->clear();
+  }
+
+  void AxisData::clear() {
+    for (auto e: this->list_) {
+      e = 0.0;
+    }
+  }
+
+  void AxisData::update(PadEventEditor& editor) {
+    if (editor.getEventType() == EventType::Axis) {
+      event_ = editor.getAxisEvent();
+      list_[event_.id] = event_.value;
     }
   }
 }

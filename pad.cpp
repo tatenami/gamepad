@@ -1,69 +1,12 @@
 #include "pad.hpp"
 
 namespace pad {
-
   /* [ PadUI member functions ] */
 
   PadUI::PadUI(const uint8_t id): id_{id} {}
 
   uint8_t PadUI::getID() { return this->id_; }
-  
-  /* [ InputData member functions ] */
 
-  template <typename T>
-  InputData<T>::InputData(uint total_input) {
-    this->list_.resize(total_input);
-  }
-
-  template <typename T>
-  const std::vector<T> InputData<T>::getVector() {
-    return this->list_;
-  }
-
-
-  ButtonData::ButtonData(uint total_input):
-    InputData(total_input)
-  {
-    this->type_ = EventType::Button;
-    this->clear();
-  }
-
-  void ButtonData::update(PadEventEditor& editor) {
-    update_flag_ = true;
-    event_ = editor.getButtonEvent();
-    list_.at(event_.id) = event_.state;
-  }
-
-  void ButtonData::clear() {
-    for (auto e: this->list_) {
-      e = false;
-    }
-  }
-
-
-
-  AxisData::AxisData(uint total_input):
-    InputData(total_input) 
-  {
-    this->type_ = EventType::Axis;
-    this->clear();
-  }
-
-  void AxisData::update(PadEventEditor& editor) {
-    event_ = editor.getAxisEvent();
-    list_.at(event_.id) = event_.value;
-  }
-
-  void AxisData::clear() {
-    for (auto e: this->list_) {
-      e = 0.0;
-    }
-  }
-
-
-  Button& Button::get() {
-    return *this;
-  }
 
   void Button::attach(ButtonData& ad) {
     this->ad_ = &ad;
@@ -96,10 +39,6 @@ namespace pad {
   }
 
 
-  Axis& Axis::get() {
-    return *this;
-  }
-
   void Axis::attach(AxisData& ad) {
     this->ad_ = &ad;
   }
@@ -118,7 +57,7 @@ namespace pad {
 
   float Trigger::getDepth() { return this->depth_.getValue(); }
 
-  Axis& Trigger::getAxis() { return this->depth_.get(); }
+  Axis& Trigger::getAxis() { return this->depth_; }
 
 
   Stick::Stick(uint8_t x_id, uint8_t y_id):
@@ -136,5 +75,4 @@ namespace pad {
   float Stick::angleRad() {
     return atan2f(y.getValue(), x.getValue());
   }
-
 }

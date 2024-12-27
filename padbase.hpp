@@ -13,10 +13,11 @@
 #include <regex>
 #include <unordered_map>
 #include <vector>
-#include <memory>
 #include <cmath>
 
 namespace pad {
+
+  const float default_deadzone = 0.05;
 
   namespace {
     const std::string devlist_path = "/proc/bus/input/devices";
@@ -30,6 +31,13 @@ namespace pad {
     None, Button, Axis
   };
 
+  enum class ErrorCode {
+    None,
+    FindDeviceName,
+    FindDeviceFile,
+    OpenDeviceFile
+  };
+
   /**
    * @brief 
    * 
@@ -39,6 +47,7 @@ namespace pad {
     int32_t   value;
     EventType type;
   };
+
 
   /**
    * @brief read event data of game controller 
@@ -50,6 +59,7 @@ namespace pad {
 
     bool connection_;
     int  fd_;
+    ErrorCode code_;
     input_event raw_event_;
     PadEvent    event_;
 
@@ -66,6 +76,10 @@ namespace pad {
 
     inline bool isConnected() {
       return this->connection_;
+    }
+
+    inline int getErrorCode() {
+      return static_cast<int>(this->code_);
     }
 
     inline PadEvent getPadEvent() {
@@ -94,16 +108,15 @@ namespace pad {
     PadEvent    event_;
     ButtonEvent button_event_{0, false};
     AxisEvent   axis_event_{0, 0.0};
+    float deadzone_{default_deadzone};
 
     virtual void editButtonEvent() = 0;
     virtual void editAxisEvent() = 0;
 
    public:
     void editEvent(PadReader& reader);
-
-    void addCodeIdEntry(uint event_code, uint8_t ui_id) {
-      this->id_map_[event_code] = ui_id;
-    }
+    void addCodeIdEntry(uint event_code, uint8_t ui_id);
+    void setDeadZone(float deadzone);
 
     inline EventType getEventType() { 
       return this->event_.type; 
@@ -118,8 +131,7 @@ namespace pad {
     }    
   };
 
-
-  /**
+      /**
    * @brief 
    * 
    * @tparam T 
@@ -131,8 +143,14 @@ namespace pad {
     std::vector<T> list_; 
 
    public:
-    InputData(uint total_input);
-    const std::vector<T> getVector();
+    InputData(uint total_input) {
+      this->list_.resize(total_input);
+    }
+
+    std::vector<T> getVector() {
+      return this->list_;
+    }
+
     virtual void clear() = 0;
     virtual void update(PadEventEditor& editor) = 0;
   };
@@ -173,5 +191,6 @@ namespace pad {
       return this->list_.at(id);
     }
   };  
+
 }
-#endif // PAD_H
+#endif // PAD_BASE_H

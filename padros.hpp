@@ -7,25 +7,30 @@ namespace pad {
 
   namespace ros {
 
-    template <class Handler>
+    template <class Editor>
     class RosPad {
      protected:
-      std::unique_ptr<Handler> handler_;
-      PadReader  reader_;
-      ButtonData buttons_;
-      AxisData   axes_;
+      std::unique_ptr<PadEventEditor> editor_;
+      PadReader   reader_;
+      ButtonData  buttons_;
+      AxisData    axes_;
       bool is_connected_{false};
 
      public:
-      RosPad(uint b_total, uint a_total):
-        buttons_(b_total),
-        axes_(a_total)
+      RosPad(std::string device_name, uint total_button, uint total_axis):
+        buttons_(total_button),
+        axes_(total_axis)
       {
-        this->handler_ = std::make_unique<Handler>();
+        this->editor_ = std::make_unique<Editor>();
+        this->is_connected_ = reader_.connect(device_name);
       }
 
       ~RosPad() {
         reader_.disconnect();
+      }
+
+      bool isConnected() {
+        return is_connected_;
       }
 
       void copyRawData(std::vector<bool>& button_data, std::vector<float>& axis_data) {
@@ -33,30 +38,20 @@ namespace pad {
         axis_data   = axes_.getVector();
       }
 
-      virtual void update() {
+      void update() {
         if (!reader_.isConnected()) {
-          this->is_connected_ = false;
+          is_connected_ = false;
           buttons_.clear();
           axes_.clear();
           return;
         }
 
-        if (this->reader_.readEvent()) {
-          (*handler_).editEvent(reader_);
+        if (reader_.readEvent()) {
+          (*editor_).editEvent(reader_);
 
-          EventType type = (*handler_).getEventType();
-          switch (type) {
-            case EventType::Button: {
-              buttons_.update((*handler_).getButtonEvent());
-              break;
-            }
-            case EventType::Axis: {
-              axes_.update((*handler_).getAxisEvent());
-              break;
-            }
-          }
+          buttons_.update(*editor_);
+          axes_.update(*editor_);
         }
-        
       }
     };
 

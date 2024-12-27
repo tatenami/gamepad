@@ -5,6 +5,55 @@
 
 namespace pad {
 
+  template <class Editor>
+  class GamePad {
+   protected:
+    std::unique_ptr<PadEventEditor> editor_;
+    PadReader   reader_;
+    ButtonData  buttons_;
+    AxisData    axes_;
+    bool is_connected_{false};
+
+   public:
+    GamePad(uint total_button, uint total_axis):
+      buttons_(total_button),
+      axes_(total_axis)
+    {
+      this->editor_ = std::make_unique<Editor>();
+    }
+
+    ~GamePad() {
+        reader_.disconnect();
+    }
+
+    bool isConnected() {
+      return is_connected_;
+    }
+    
+    void setDeadZone(float deadzone) {
+      this->editor_->setDeadZone(deadzone);
+    }
+
+    void update() {
+      buttons_.resetUpdateFlag();
+
+      if (!reader_.isConnected()) {
+        is_connected_ = false;
+        buttons_.clear();
+        axes_.clear();
+        return;
+      }
+
+      if (reader_.readEvent()) {
+        (*editor_).editEvent(reader_);
+
+        buttons_.update(*editor_);
+        axes_.update(*editor_);
+      }
+    }
+  };
+
+
   class PadUI {
    protected:
     const uint8_t id_;
@@ -21,7 +70,6 @@ namespace pad {
 
    public:
     using PadUI::PadUI;
-    Button& get();
     void attach(ButtonData& ad);
     bool pressed();
     bool pushed();
@@ -34,7 +82,6 @@ namespace pad {
 
    public:
     using PadUI::PadUI;
-    Axis& get();
     void  attach(AxisData& ad);
     float getValue();
   };
@@ -60,59 +107,6 @@ namespace pad {
     float angleDeg();
     float angleRad();
   };
-  
-  class BasePad {
-   protected:
-    std::unique_ptr<PadEventEditor> editor_; 
-    PadReader   reader_;
-    ButtonData  buttons_;
-    AxisData    axes_;
-    bool is_connected_{false};
-
-   public:
-    BasePad(uint b_total, uint a_total):
-      buttons_(b_total),
-      axes_(a_total)
-    {
-      this->editor_ = std::make_unique<PadEventEditor>();
-    }
-
-    ~BasePad() {
-        reader_.disconnect();
-    }
-
-    bool isConnected() {
-      return is_connected_;
-    }
-
-    virtual void update() {
-      buttons_.resetUpdateFlag();
-
-      if (!reader_.isConnected()) {
-        this->is_connected_ = false;
-        buttons_.clear();
-        axes_.clear();
-        return;
-      }
-
-      if (this->reader_.readEvent()) {
-        editor_->editEvent(reader_);
-
-        EventType type = editor_->getEventType();
-        switch (type) {
-          case EventType::Button: {
-            buttons_.update(*editor_);
-            break;
-          }
-          case EventType::Axis: {
-            axes_.update(*editor_);
-            break;
-          }
-        }
-      }
-
-    }
-  };
 }
 
-#endif // XXX_H
+#endif // PAD_H

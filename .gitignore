@@ -3,3 +3,4 @@ doxyfile
 *.o
 ps5/*.o
 ps5/test*
+test/
