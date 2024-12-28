@@ -50,14 +50,12 @@ namespace pad {
 
   Trigger::Trigger(uint8_t button_id, uint8_t axis_id): 
     Button(button_id),
-    depth_(axis_id)
+    depth(axis_id)
   {
 
   }
 
-  float Trigger::getDepth() { return this->depth_.getValue(); }
-
-  Axis& Trigger::getAxis() { return this->depth_; }
+  float Trigger::getDepth() { return this->depth.getValue(); }
 
 
   Stick::Stick(uint8_t x_id, uint8_t y_id):

@@ -3,7 +3,7 @@
 namespace pad {
 
   namespace ps5 {
-    PS5Handler::PS5Handler() {
+    PS5Editor::PS5Editor() {
       addCodeIdEntry(BTN_SOUTH,  ButtonID::cross);
       addCodeIdEntry(BTN_EAST,   ButtonID::circle);
       addCodeIdEntry(BTN_NORTH,  ButtonID::triangle);
@@ -31,7 +31,7 @@ namespace pad {
       this->deadzone_ = default_deadzone;
     }
 
-    void PS5Handler::editCrossXData(int32_t val) {
+    void PS5Editor::editCrossXData(int32_t val) {
       if (val > 0) {
         this->pre_crossXid_ = ButtonID::right;
         button_event_ = {ButtonID::right, true};
@@ -55,7 +55,7 @@ namespace pad {
       }
     }
 
-    void PS5Handler::editCrossYData(int32_t val) {
+    void PS5Editor::editCrossYData(int32_t val) {
       if (val > 0) {
         this->pre_crossXid_ = ButtonID::down;
         button_event_ = {ButtonID::down, true};
@@ -79,7 +79,7 @@ namespace pad {
       }
     }
 
-    void PS5Handler::editAxisEvent() {
+    void PS5Editor::editAxisEvent() {
       int32_t val = event_.value;
       uint8_t id  = id_map_[event_.code]; 
 
@@ -115,7 +115,7 @@ namespace pad {
       }
     }
 
-    void PS5Handler::editButtonEvent() {
+    void PS5Editor::editButtonEvent() {
       button_event_.id = id_map_[event_.code];
 
       switch (event_.value) {
@@ -150,31 +150,25 @@ namespace pad {
       bool connection = reader_.connect(dev_name);
       this->is_connected_ = connection;
 
-      Cross.attach(buttons_);
-      Circle.attach(buttons_);
-      Triangle.attach(buttons_);
-      Square.attach(buttons_);
-      L1.attach(buttons_);
-      R1.attach(buttons_);
-      Create.attach(buttons_);
-      Option.attach(buttons_);
-      Ps.attach(buttons_);
-      L3.attach(buttons_);
-      R3.attach(buttons_);
-      Left.attach(buttons_);
-      Right.attach(buttons_);
-      Up.attach(buttons_);
-      Down.attach(buttons_);
+      std::vector<Button*> buttons = {
+        &Cross, &Circle, &Triangle, &Square,
+        &L1, &R1, &L2, &R2,
+        &Create, &Option, &Ps,
+        &L3, &R3,
+        &Left, &Right, &Up, &Down
+      };
 
-      L2.attach(buttons_);
-      L2.getAxis().attach(axes_);
-      R2.attach(buttons_);
-      R2.getAxis().attach(axes_);
+      std::vector<Axis*> axes = {
+        &(LStick.x),
+        &(LStick.y),
+        &(L2.depth),
+        &(RStick.x),
+        &(RStick.y),
+        &(R2.depth)
+      };
 
-      LStick.x.attach(axes_);
-      LStick.y.attach(axes_);
-      RStick.x.attach(axes_);
-      RStick.y.attach(axes_);
+      this->attachUI(buttons);
+      this->attachUI(axes);
     }
   }
 }

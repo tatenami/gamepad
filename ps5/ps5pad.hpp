@@ -49,7 +49,7 @@ namespace pad {
       const int crossY  = 7;
     }
 
-    class PS5Handler: public PadEventEditor {
+    class PS5Editor: public PadEventEditor {
      private:
       int pre_crossXid_;
       int pre_crossYid_;
@@ -61,10 +61,10 @@ namespace pad {
       void editAxisEvent() override;
 
      public:
-      PS5Handler();
+      PS5Editor();
     };
 
-    class DualSense: public GamePad<PS5Handler> {
+    class DualSense: public GamePad<PS5Editor> {
      public:
       Button Cross    {ButtonID::cross};
       Button Circle   {ButtonID::circle};
@@ -87,7 +87,6 @@ namespace pad {
 
       Stick LStick {AxisID::leftX,  AxisID::leftY};
       Stick RStick {AxisID::rightX, AxisID::rightY};
-
 
       DualSense(Connect connect_type);
     };

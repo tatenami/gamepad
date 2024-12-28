@@ -151,6 +151,10 @@ namespace pad {
       return this->list_;
     }
 
+    int getSize() {
+      return this->list_.size();
+    }
+
     virtual void clear() = 0;
     virtual void update(PadEventEditor& editor) = 0;
   };
