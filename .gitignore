@@ -4,3 +4,4 @@ doxyfile
 ps5/*.o
 ps5/test*
 test/
+event-code.txt
