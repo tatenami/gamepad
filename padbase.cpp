@@ -136,7 +136,7 @@ namespace pad {
   }
 
 
-    /* [ InputData member functions ] */
+  /* [ InputData member functions ] */
 
   ButtonData::ButtonData(uint total_input):
     InputData(total_input)

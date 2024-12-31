@@ -23,10 +23,6 @@ namespace pad {
     const std::string devlist_path = "/proc/bus/input/devices";
   }
 
-  enum class Connect {
-    USB, Bluetooth
-  };
-
   enum class EventType {
     None, Button, Axis
   };
@@ -195,6 +191,53 @@ namespace pad {
       return this->list_.at(id);
     }
   };  
+  
+
+
+  class BasePad {
+   protected:
+    std::unique_ptr<PadEventEditor> editor_;
+    PadReader   reader_;
+    ButtonData  buttons_;
+    AxisData    axes_;
+    bool is_connected_{false};
+
+   public:
+    BasePad(std::string device_name, uint total_button, uint total_axis):
+      buttons_(total_button),
+      axes_(total_axis)
+    {
+      this->is_connected_ = reader_.connect(device_name);
+    }
+
+    ~BasePad() {
+      reader_.disconnect();
+    }
+
+    bool isConnected() {
+      return is_connected_;
+    }
+    
+    void setDeadZone(float deadzone) {
+      this->editor_->setDeadZone(deadzone);
+    }
+
+    void update() {
+      if (!reader_.isConnected()) {
+        is_connected_ = false;
+        buttons_.clear();
+        axes_.clear();
+        return;
+      }
+
+      if (reader_.readEvent()) {
+        (*editor_).editEvent(reader_);
+
+        buttons_.update(*editor_);
+        axes_.update(*editor_);
+      }
+    }
+  };
 
 }
 #endif // PAD_BASE_H

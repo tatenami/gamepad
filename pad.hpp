@@ -58,32 +58,28 @@ namespace pad {
   };
 
   template <class Editor>
-  class GamePad {
-   protected:
-    std::unique_ptr<PadEventEditor> editor_;
-    PadReader   reader_;
-    ButtonData  buttons_;
-    AxisData    axes_;
-    bool is_connected_{false};
-
+  class GamePad: public BasePad {
    public:
-    GamePad(uint total_button, uint total_axis):
-      buttons_(total_button),
-      axes_(total_axis)
+    GamePad(std::string device_name, uint total_button, uint total_axis):
+      BasePad(device_name, total_button, total_axis)
     {
       this->editor_ = std::make_unique<Editor>();
     }
 
-    ~GamePad() {
-        reader_.disconnect();
+    void attachUI(Button& button) {
+      if (button.getID() < buttons_.getSize())
+        button.attach(this->buttons_);
     }
 
-    bool isConnected() {
-      return is_connected_;
+    void attachUI(Axis& axis) {
+      if (axis.getID() < axes_.getSize()) 
+        axis.attach(this->axes_);
     }
-    
-    void setDeadZone(float deadzone) {
-      this->editor_->setDeadZone(deadzone);
+
+    void attachUI(Trigger& trigger) {
+      Button& button = trigger;
+      attachUI(button);
+      attachUI(trigger.depth);
     }
 
     void attachUI(std::vector<Button*>& buttons) {
@@ -104,23 +100,9 @@ namespace pad {
       }
     }
 
-
     void update() {
       buttons_.resetUpdateFlag();
-
-      if (!reader_.isConnected()) {
-        is_connected_ = false;
-        buttons_.clear();
-        axes_.clear();
-        return;
-      }
-
-      if (reader_.readEvent()) {
-        (*editor_).editEvent(reader_);
-
-        buttons_.update(*editor_);
-        axes_.update(*editor_);
-      }
+      BasePad::update();
     }
   };
 }

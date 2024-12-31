@@ -88,7 +88,7 @@ namespace pad {
       Stick LStick {AxisID::leftX,  AxisID::leftY};
       Stick RStick {AxisID::rightX, AxisID::rightY};
 
-      DualSense(Connect connect_type);
+      DualSense(std::string device_name);
     };
   }
 }

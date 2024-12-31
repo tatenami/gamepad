@@ -131,25 +131,9 @@ namespace pad {
     }
 
 
-    DualSense::DualSense(Connect connect_type):
-      GamePad(dev::button_num, dev::axis_num)
+    DualSense::DualSense(std::string device_name):
+      GamePad(device_name, dev::button_num, dev::axis_num)
     {
-      std::string dev_name;
-
-      switch (connect_type) {
-        case (Connect::USB): {
-          dev_name = dev::usb_name; 
-          break;
-        }
-        case (Connect::Bluetooth): {
-          dev_name = dev::bluetooth_name;
-          break;
-        }
-      }
-
-      bool connection = reader_.connect(dev_name);
-      this->is_connected_ = connection;
-
       std::vector<Button*> buttons = {
         &Cross, &Circle, &Triangle, &Square,
         &L1, &R1, &L2, &R2,

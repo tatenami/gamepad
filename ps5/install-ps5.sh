@@ -1,4 +1,4 @@
-g++ -shared -fPIC -o libps5pad.so ../pad.cpp ../padbase.cpp ps5pad.cpp
+g++ -shared -fPIC -O3 -o libps5pad.so ../pad.cpp ../padbase.cpp ps5pad.cpp
 
 sudo cp ps5pad.hpp /usr/local/include/pad
 
