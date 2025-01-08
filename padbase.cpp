@@ -155,7 +155,8 @@ namespace pad {
     if (editor.getEventType() == EventType::Button) {
       update_flag_ = true;
       event_ = editor.getButtonEvent();
-      list_[event_.id] = event_.state;
+      if (event_.id <= this->size_)
+        list_[event_.id] = event_.state;
     }
   }
 
@@ -176,6 +177,7 @@ namespace pad {
   void AxisData::update(PadEventEditor& editor) {
     if (editor.getEventType() == EventType::Axis) {
       event_ = editor.getAxisEvent();
+      if (event_.id <= this->size_)
       list_[event_.id] = event_.value;
     }
   }

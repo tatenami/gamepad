@@ -4,28 +4,31 @@ namespace pad {
 
   namespace ps5 {
     PS5Editor::PS5Editor() {
-      addCodeIdEntry(BTN_SOUTH,  ButtonID::cross);
-      addCodeIdEntry(BTN_EAST,   ButtonID::circle);
-      addCodeIdEntry(BTN_NORTH,  ButtonID::triangle);
-      addCodeIdEntry(BTN_WEST,   ButtonID::square);
-      addCodeIdEntry(BTN_TL,     ButtonID::L1);
-      addCodeIdEntry(BTN_TR,     ButtonID::R1);
-      addCodeIdEntry(BTN_TL2,    ButtonID::L2);
-      addCodeIdEntry(BTN_TR2,    ButtonID::R2);
-      addCodeIdEntry(BTN_SELECT, ButtonID::create);
-      addCodeIdEntry(BTN_START,  ButtonID::option);
-      addCodeIdEntry(BTN_MODE,   ButtonID::ps);
-      addCodeIdEntry(BTN_THUMBL, ButtonID::L3);
-      addCodeIdEntry(BTN_THUMBR, ButtonID::R3);
 
-      addCodeIdEntry(ABS_X,  AxisID::leftX);
-      addCodeIdEntry(ABS_Y,  AxisID::leftY);
-      addCodeIdEntry(ABS_RX, AxisID::rightX);
-      addCodeIdEntry(ABS_RY, AxisID::rightY);
-      addCodeIdEntry(ABS_Z,  AxisID::L2depth);
-      addCodeIdEntry(ABS_RZ, AxisID::R2depth);
-      addCodeIdEntry(ABS_HAT0X, AxisID::crossX);
-      addCodeIdEntry(ABS_HAT0Y, AxisID::crossY);
+      id_map_ = code_id_map {
+        {BTN_SOUTH,  ButtonID::cross},
+        {BTN_EAST,   ButtonID::circle},
+        {BTN_NORTH,  ButtonID::triangle},
+        {BTN_WEST,   ButtonID::square},
+        {BTN_TL,     ButtonID::L1},
+        {BTN_TR,     ButtonID::R1},
+        {BTN_TL2,    ButtonID::L2},
+        {BTN_TL2,    ButtonID::R2},
+        {BTN_SELECT, ButtonID::create},
+        {BTN_START,  ButtonID::option},
+        {BTN_MODE,   ButtonID::ps},
+        {BTN_THUMBL, ButtonID::L3},
+        {BTN_THUMBR, ButtonID::R3},
+
+        {ABS_X,  AxisID::leftX},
+        {ABS_Y,  AxisID::leftY},
+        {ABS_RX, AxisID::rightX},
+        {ABS_RY, AxisID::rightY},
+        {ABS_Z,  AxisID::L2depth},
+        {ABS_RZ, AxisID::R2depth},
+        {ABS_HAT0X,  AxisID::crossX},
+        {ABS_HAT0Y,  AxisID::crossY},
+      };
 
       this->axis_max_ = std::numeric_limits<uint8_t>::max();
       this->deadzone_ = default_deadzone;
@@ -132,7 +135,7 @@ namespace pad {
 
 
     DualSense::DualSense(std::string device_name):
-      GamePad(device_name, dev::button_num, dev::axis_num)
+      GamePad(device_name)
     {
       std::vector<Button*> buttons = {
         &Cross, &Circle, &Triangle, &Square,

@@ -10,8 +10,8 @@ namespace pad {
     template <class Editor>
     class RosPad: public BasePad {
      public:
-      RosPad(std::string device_name, uint total_button, uint total_axis):
-        BasePad(device_name, total_button, total_axis)
+      RosPad(std::string device_name):
+        BasePad(device_name)
       {
         this->editor_ = std::make_unique<Editor>();
       }

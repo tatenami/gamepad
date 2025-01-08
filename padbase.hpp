@@ -18,6 +18,8 @@
 namespace pad {
 
   const float default_deadzone = 0.05;
+  const int default_button_num = 20;
+  const int default_axis_num = 8;
 
   namespace {
     const std::string devlist_path = "/proc/bus/input/devices";
@@ -94,13 +96,15 @@ namespace pad {
     float   value;
   };
 
+  using code_id_map = std::unordered_map<uint, uint8_t>;
+
   /**
    * @brief 
    * 
    */
   class PadEventEditor {
    protected:
-    std::unordered_map<uint, uint8_t> id_map_;
+    code_id_map id_map_;
     PadEvent    event_;
     ButtonEvent button_event_{0, false};
     AxisEvent   axis_event_{0, 0.0};
@@ -135,12 +139,14 @@ namespace pad {
   template <typename T>
   class InputData {
    protected: 
+    uint size_;
     EventType type_;
     std::vector<T> list_; 
 
    public:
     InputData(uint total_input) {
       this->list_.resize(total_input);
+      this->size_ = list_.size();
     }
 
     std::vector<T> getVector() {
@@ -203,9 +209,9 @@ namespace pad {
     bool is_connected_{false};
 
    public:
-    BasePad(std::string device_name, uint total_button, uint total_axis):
-      buttons_(total_button),
-      axes_(total_axis)
+    BasePad(std::string device_name):
+      buttons_(default_button_num),
+      axes_(default_axis_num)
     {
       this->is_connected_ = reader_.connect(device_name);
     }
