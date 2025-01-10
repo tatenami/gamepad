@@ -8,13 +8,9 @@ namespace pad {
   namespace ros {
 
     template <class Editor>
-    class RosPad: public BasePad {
+    class RosPad: public BasePad<Editor> {
      public:
-      RosPad(std::string device_name):
-        BasePad(device_name)
-      {
-        this->editor_ = std::make_unique<Editor>();
-      }
+      using BasePad<Editor>::BasePad;
 
       void copyRawData(std::vector<bool>& button_data, std::vector<float>& axis_data) {
         button_data = buttons_.getVector();

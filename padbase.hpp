@@ -157,6 +157,10 @@ namespace pad {
       return this->list_.size();
     }
 
+    void resize(int total_input) {
+      this->list_.resize(total_input);
+    }
+
     virtual void clear() = 0;
     virtual void update(PadEventEditor& editor) = 0;
   };
@@ -199,7 +203,7 @@ namespace pad {
   };  
   
 
-
+  template <class Editor>
   class BasePad {
    protected:
     std::unique_ptr<PadEventEditor> editor_;
@@ -209,10 +213,13 @@ namespace pad {
     bool is_connected_{false};
 
    public:
-    BasePad(std::string device_name):
-      buttons_(default_button_num),
-      axes_(default_axis_num)
+    BasePad(std::string device_name, 
+            int button_num = default_button_num, 
+            int axis_num = default_axis_num):
+      buttons_(button_num),
+      axes_(axis_num)
     {
+      this->editor_ = std::make_unique<Editor>();
       this->is_connected_ = reader_.connect(device_name);
     }
 
@@ -225,7 +232,12 @@ namespace pad {
     }
     
     void setDeadZone(float deadzone) {
-      this->editor_->setDeadZone(deadzone);
+      editor_->setDeadZone(deadzone);
+    }
+
+    void resizeInputTotal(int total_button, int total_axis) {
+      buttons_.resize(total_button);
+      axes_.resize(total_axis);
     }
 
     void update() {

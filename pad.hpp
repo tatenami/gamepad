@@ -58,21 +58,23 @@ namespace pad {
   };
 
   template <class Editor>
-  class GamePad: public BasePad {
+  class GamePad: public BasePad<Editor> {
    public:
-    GamePad(std::string device_name):
-      BasePad(device_name)
+    GamePad(std::string device_name,
+            int button_num = default_button_num, 
+            int axis_num = default_axis_num):
+      BasePad<Editor>(device_name, button_num, axis_num)
     {
       this->editor_ = std::make_unique<Editor>();
     }
 
     void attachUI(Button& button) {
-      if (button.getID() < buttons_.getSize())
+      if (button.getID() < this->buttons_.getSize())
         button.attach(this->buttons_);
     }
 
     void attachUI(Axis& axis) {
-      if (axis.getID() < axes_.getSize()) 
+      if (axis.getID() < this->axes_.getSize()) 
         axis.attach(this->axes_);
     }
 
@@ -101,8 +103,8 @@ namespace pad {
     }
 
     void update() {
-      buttons_.resetUpdateFlag();
-      BasePad::update();
+      this->buttons_.resetUpdateFlag();
+      BasePad<Editor>::update();
     }
   };
 }
