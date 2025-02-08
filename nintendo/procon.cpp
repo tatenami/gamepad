@@ -1,40 +1,39 @@
-#include "ps5pad.hpp"
+#include "procon.hpp"
 
 namespace pad {
+  
+  namespace nintendo {
 
-  namespace ps5 {
-    PS5Editor::PS5Editor() {
-
+    ProconEditor::ProconEditor() {
       id_map_ = code_id_map {
-        {BTN_SOUTH,  ButtonID::cross},
-        {BTN_EAST,   ButtonID::circle},
-        {BTN_NORTH,  ButtonID::triangle},
-        {BTN_WEST,   ButtonID::square},
-        {BTN_TL,     ButtonID::L1},
-        {BTN_TR,     ButtonID::R1},
-        {BTN_TL2,    ButtonID::L2},
-        {BTN_TR2,    ButtonID::R2},
-        {BTN_SELECT, ButtonID::create},
-        {BTN_START,  ButtonID::option},
-        {BTN_MODE,   ButtonID::ps},
-        {BTN_THUMBL, ButtonID::L3},
-        {BTN_THUMBR, ButtonID::R3},
+        {BTN_SOUTH,  ButtonID::B},
+        {BTN_EAST,   ButtonID::A},
+        {BTN_NORTH,  ButtonID::X},
+        {BTN_WEST,   ButtonID::Y},
+        {BTN_TL,     ButtonID::L},
+        {BTN_TR,     ButtonID::R},
+        {BTN_TL2,    ButtonID::ZL},
+        {BTN_TR2,    ButtonID::ZR},
+        {BTN_SELECT, ButtonID::minus},
+        {BTN_START,  ButtonID::plus},
+        {BTN_MODE,   ButtonID::home},
+        {BTN_Z,      ButtonID::cpature},
+        {BTN_THUMBL, ButtonID::Ls},
+        {BTN_THUMBR, ButtonID::Rs},
 
-        {ABS_X,  AxisID::leftX},
-        {ABS_Y,  AxisID::leftY},
-        {ABS_RX, AxisID::rightX},
-        {ABS_RY, AxisID::rightY},
-        {ABS_Z,  AxisID::L2depth},
-        {ABS_RZ, AxisID::R2depth},
+        {ABS_X,   AxisID::leftX},
+        {ABS_Y,   AxisID::leftY},
+        {ABS_RX,  AxisID::rightX},
+        {ABS_RY,  AxisID::rightY},
         {ABS_HAT0X,  AxisID::crossX},
         {ABS_HAT0Y,  AxisID::crossY},
       };
 
-      this->axis_max_ = std::numeric_limits<uint8_t>::max();
+      this->axis_max_ = std::numeric_limits<int16_t>::max();
       this->deadzone_ = default_deadzone;
     }
 
-    void PS5Editor::editCrossXData(int32_t val) {
+    void ProconEditor::editCrossXData(int32_t val) {
       if (val > 0) {
         this->pre_crossXid_ = ButtonID::right;
         button_event_ = {ButtonID::right, true};
@@ -55,10 +54,10 @@ namespace pad {
           }
         }
         button_event_.state = false;
-      }
+      }       
     }
 
-    void PS5Editor::editCrossYData(int32_t val) {
+    void ProconEditor::editCrossYData(int32_t val) {
       if (val > 0) {
         this->pre_crossXid_ = ButtonID::down;
         button_event_ = {ButtonID::down, true};
@@ -82,7 +81,7 @@ namespace pad {
       }
     }
 
-    void PS5Editor::editAxisEvent() {
+    void ProconEditor::editAxisEvent() {
       int32_t val = event_.value;
       uint8_t id  = id_map_[event_.code]; 
 
@@ -99,11 +98,6 @@ namespace pad {
         }
       }
 
-      if (id != AxisID::L2depth && id != AxisID::R2depth) {
-        val *= 2;
-        val -= axis_max_;
-      }
-
       switch (id) {
         case (AxisID::leftY):
         case (AxisID::rightY): {
@@ -118,7 +112,7 @@ namespace pad {
       }
     }
 
-    void PS5Editor::editButtonEvent() {
+    void ProconEditor::editButtonEvent() {
       button_event_.id = id_map_[event_.code];
 
       switch (event_.value) {
@@ -134,28 +128,26 @@ namespace pad {
     }
 
 
-    DualSense::DualSense(std::string device_name):
-      GamePad(device_name)
+    Procon::Procon(std::string device_name) 
+      :GamePad(device_name)
     {
       std::vector<Button*> buttons = {
-        &Cross, &Circle, &Triangle, &Square,
-        &L1, &R1, &L2, &R2,
-        &Create, &Option, &Ps,
-        &L3, &R3,
-        &Left, &Right, &Up, &Down
+        &B, &A, &X, &Y, &L, &R, &ZL, &ZR,
+        &Minus, &Plus, &Home, &Capture,
+        &LS, &RS, &Left, &Right, &Up, &Down
       };
 
       std::vector<Axis*> axes = {
         &(LStick.x),
         &(LStick.y),
-        &(L2.depth),
         &(RStick.x),
         &(RStick.y),
-        &(R2.depth)
       };
 
       this->attachUI(buttons);
       this->attachUI(axes);
     }
+
   }
+
 }

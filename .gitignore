@@ -3,5 +3,9 @@ doxyfile
 *.o
 ps5/*.o
 ps5/test*
+nintendo/*.o
+nintendo/test*
+nintendo/Makefile
 test/
 event-code.txt
+.gitignore

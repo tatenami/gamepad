@@ -13,8 +13,8 @@ namespace pad {
       using BasePad<Editor>::BasePad;
 
       void copyRawData(std::vector<bool>& button_data, std::vector<float>& axis_data) {
-        button_data = buttons_.getVector();
-        axis_data   = axes_.getVector();
+        button_data = this->buttons_.getVector();
+        axis_data   = this->axes_.getVector();
       }
     };
 

@@ -220,11 +220,11 @@ namespace pad {
       axes_(axis_num)
     {
       this->editor_ = std::make_unique<Editor>();
-      this->is_connected_ = reader_.connect(device_name);
+      this->is_connected_ = this->reader_.connect(device_name);
     }
 
     ~BasePad() {
-      reader_.disconnect();
+      this->reader_.disconnect();
     }
 
     bool isConnected() {
@@ -232,27 +232,27 @@ namespace pad {
     }
     
     void setDeadZone(float deadzone) {
-      editor_->setDeadZone(deadzone);
+      this->editor_->setDeadZone(deadzone);
     }
 
     void resizeInputTotal(int total_button, int total_axis) {
-      buttons_.resize(total_button);
-      axes_.resize(total_axis);
+      this->buttons_.resize(total_button);
+      this->axes_.resize(total_axis);
     }
 
     void update() {
-      if (!reader_.isConnected()) {
+      if (!(this->reader_.isConnected())) {
         is_connected_ = false;
-        buttons_.clear();
-        axes_.clear();
+        this->buttons_.clear();
+        this->axes_.clear();
         return;
       }
 
-      if (reader_.readEvent()) {
-        (*editor_).editEvent(reader_);
+      if (this->reader_.readEvent()) {
+        (*(this->editor_)).editEvent(reader_);
 
-        buttons_.update(*editor_);
-        axes_.update(*editor_);
+        this->buttons_.update(*(this->editor_));
+        this->axes_.update(*(this->editor_));
       }
     }
   };
