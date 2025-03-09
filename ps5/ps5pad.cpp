@@ -99,17 +99,20 @@ namespace pad {
         }
       }
 
+      // 値の範囲を-axis_max <--> axis_max に拡張
       if (id != AxisID::L2depth && id != AxisID::R2depth) {
         val *= 2;
         val -= axis_max_;
       }
 
       switch (id) {
+        // Y軸の上側が+になるよう反転
         case (AxisID::leftY):
         case (AxisID::rightY): {
           val *= -1;
         }
         default: {
+          // axis値を-1.0 <--> 1.0 に
           axis_event_.id = id;
           float fval = static_cast<float>(val) / axis_max_;
           if (fabs(fval) < deadzone_) fval = 0.0;
@@ -138,11 +141,23 @@ namespace pad {
       GamePad(device_name)
     {
       std::vector<Button*> buttons = {
-        &Cross, &Circle, &Triangle, &Square,
-        &L1, &R1, &L2, &R2,
-        &Create, &Option, &Ps,
-        &L3, &R3,
-        &Left, &Right, &Up, &Down
+        &Cross, 
+        &Circle, 
+        &Triangle, 
+        &Square,
+        &L1, 
+        &R1, 
+        &L2, 
+        &R2,
+        &Create,
+        &Option,
+        &Ps,
+        &L3, 
+        &R3,
+        &Left, 
+        &Right, 
+        &Up, 
+        &Down
       };
 
       std::vector<Axis*> axes = {

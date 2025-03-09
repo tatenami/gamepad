@@ -17,7 +17,6 @@ namespace pad {
     const float default_deadzone = 0.05; 
 
     namespace ButtonID {
-      // Button 
       const int cross    = 0;
       const int circle   = 1;
       const int triangle = 2;
@@ -38,7 +37,6 @@ namespace pad {
     }
 
     namespace AxisID {
-      // Axis
       const int leftX   = 0;
       const int leftY   = 1;
       const int L2depth = 2;

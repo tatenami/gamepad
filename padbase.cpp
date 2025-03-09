@@ -67,6 +67,7 @@ namespace pad {
   bool PadReader::connect(std::string devname) {
     std::ifstream read_stream(devlist_path);
     bool is_readable = false;
+    connection_ = false;
 
     try {
       findDeviceName(devname, read_stream);
@@ -77,6 +78,7 @@ namespace pad {
     }
     catch (ErrorCode code) {
       this->code_ = code;
+      return false;
     }
 
     connection_ = is_readable;
@@ -104,6 +106,7 @@ namespace pad {
       return true;
     }
     else {
+      // 再読込エラーでなければ，ノンブロッキングread以外のエラーなので接続終了
       if (errno != EAGAIN)
         connection_ = false;
 
@@ -178,7 +181,7 @@ namespace pad {
     if (editor.getEventType() == EventType::Axis) {
       event_ = editor.getAxisEvent();
       if (event_.id <= this->size_)
-      list_[event_.id] = event_.value;
+        list_[event_.id] = event_.value;
     }
   }
 }

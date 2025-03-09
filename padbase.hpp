@@ -96,6 +96,7 @@ namespace pad {
     float   value;
   };
 
+  // デバイスファイルのCODE->インターフェースのID の変換テーブルmap
   using code_id_map = std::unordered_map<uint, uint8_t>;
 
   /**
@@ -211,6 +212,7 @@ namespace pad {
     ButtonData  buttons_;
     AxisData    axes_;
     bool is_connected_{false};
+    std::string device_name_;
 
    public:
     BasePad(std::string device_name, 
@@ -219,6 +221,7 @@ namespace pad {
       buttons_(button_num),
       axes_(axis_num)
     {
+      this->device_name_ = device_name;
       this->editor_ = std::make_unique<Editor>();
       this->is_connected_ = this->reader_.connect(device_name);
     }
@@ -229,6 +232,14 @@ namespace pad {
 
     bool isConnected() {
       return is_connected_;
+    }
+
+    bool reconnect() {
+      if (this->is_connected_) {
+        return false;
+      }
+
+      return this->reader_.connect(this->device_name_);
     }
     
     void setDeadZone(float deadzone) {
@@ -242,14 +253,14 @@ namespace pad {
 
     void update() {
       if (!(this->reader_.isConnected())) {
-        is_connected_ = false;
+        this->is_connected_ = false;
         this->buttons_.clear();
         this->axes_.clear();
         return;
       }
 
       if (this->reader_.readEvent()) {
-        (*(this->editor_)).editEvent(reader_);
+        (*(this->editor_)).editEvent(this->reader_);
 
         this->buttons_.update(*(this->editor_));
         this->axes_.update(*(this->editor_));

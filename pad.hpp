@@ -18,7 +18,7 @@ namespace pad {
 
   class Button: public PadUI {  
    protected:
-    ButtonData *ad_;
+    ButtonData *ref_data_;
 
    public:
     using PadUI::PadUI;
@@ -30,7 +30,7 @@ namespace pad {
 
   class Axis: public PadUI {
    protected:
-    AxisData *ad_;
+    AxisData *ref_data_;
 
    public:
     using PadUI::PadUI;

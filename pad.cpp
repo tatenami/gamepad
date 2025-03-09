@@ -8,18 +8,18 @@ namespace pad {
   uint8_t PadUI::getID() { return this->id_; }
 
 
-  void Button::attach(ButtonData& ad) {
-    this->ad_ = &ad;
+  void Button::attach(ButtonData& ref) {
+    this->ref_data_ = &ref;
   }
 
   bool Button::pressed() {
-    return ad_->getState(this->id_);
+    return ref_data_->getState(this->id_);
   }
 
   bool Button::pushed() {
-    if (!ad_->IDUpdated(this->id_)) return false;
+    if (!ref_data_->IDUpdated(this->id_)) return false;
 
-    if (ad_->getState(this->id_) == true) {
+    if (ref_data_->getState(this->id_) == true) {
       return true;
     }
     else {
@@ -28,9 +28,9 @@ namespace pad {
   }
 
   bool Button::released() {
-    if (!ad_->IDUpdated(this->id_)) return false;
+    if (!ref_data_->IDUpdated(this->id_)) return false;
 
-    if (ad_->getState(this->id_) == false) {
+    if (ref_data_->getState(this->id_) == false) {
       return true;
     }
     else {
@@ -40,11 +40,11 @@ namespace pad {
 
 
   void Axis::attach(AxisData& ad) {
-    this->ad_ = &ad;
+    this->ref_data_ = &ad;
   }
 
   float Axis::getValue() {
-    return ad_->getValue(this->id_);
+    return ref_data_->getValue(this->id_);
   }
 
 
