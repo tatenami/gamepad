@@ -83,7 +83,7 @@ namespace pad {
 
     void ProconEditor::editAxisEvent() {
       int32_t val = event_.value;
-      uint8_t id  = id_map_[event_.code]; 
+      ui_id   id  = id_map_[event_.code]; 
 
       switch (id) {
         case (AxisID::crossX): {
@@ -126,28 +126,6 @@ namespace pad {
         }
       }
     }
-
-
-    Procon::Procon(std::string device_name) 
-      :GamePad(device_name)
-    {
-      std::vector<Button*> buttons = {
-        &B, &A, &X, &Y, &L, &R, &ZL, &ZR,
-        &Minus, &Plus, &Home, &Capture,
-        &LS, &RS, &Left, &Right, &Up, &Down
-      };
-
-      std::vector<Axis*> axes = {
-        &(LStick.x),
-        &(LStick.y),
-        &(RStick.x),
-        &(RStick.y),
-      };
-
-      this->attachUI(buttons);
-      this->attachUI(axes);
-    }
-
   }
 
 }

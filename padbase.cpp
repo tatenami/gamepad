@@ -14,7 +14,7 @@ namespace pad {
     bool is_found = false;
     std::string buf;
 
-    // serch target device name in /proc/bus/input/devices
+    // search target's device name in /proc/bus/input/devices
     while (std::getline(stream, buf)) {
       if (buf.find(devname) != std::string::npos) {
         is_found = true;
@@ -37,9 +37,9 @@ namespace pad {
       if (buf.find("Handlers=") != std::string::npos) break;
     }
 
-    // select device file [ event? ]
+    // select device file [ eventX ]
     if (std::regex_search(buf, smatch, regex_devfile)) {
-      this->path += smatch[0].str();
+      this->dev_path_ += smatch[0].str();
     }
     else {
       throw ErrorCode::FindDeviceFile;
@@ -47,8 +47,8 @@ namespace pad {
   }
 
   void PadReader::openDeviceFile() {
-    // read only, non blocking mode 
-    this->fd_ = open(path.c_str(), O_RDONLY | O_NONBLOCK);
+    // 読み込みモード・ノンブロッキングモード
+    this->fd_ = open(dev_path_.c_str(), O_RDONLY | O_NONBLOCK);
 
     if (this->fd_ == -1) {
       throw ErrorCode::OpenDeviceFile;
@@ -64,13 +64,13 @@ namespace pad {
    * @return true   
    * @return false 
    */
-  bool PadReader::connect(std::string devname) {
+  bool PadReader::connect(std::string device_name) {
     std::ifstream read_stream(devlist_path);
     bool is_readable = false;
     connection_ = false;
 
     try {
-      findDeviceName(devname, read_stream);
+      findDeviceName(device_name, read_stream);
       findDeviceHandler(read_stream);
       openDeviceFile();
       is_readable = true; 
@@ -81,10 +81,10 @@ namespace pad {
       return false;
     }
 
+    read_stream.close();
     connection_ = is_readable;
     event_ = {0, 0, EventType::None};
 
-    read_stream.close();
     return is_readable;
   }
 
@@ -107,16 +107,18 @@ namespace pad {
     }
     else {
       // 再読込エラーでなければ，ノンブロッキングread以外のエラーなので接続終了
-      if (errno != EAGAIN)
+      if (errno != EAGAIN) {
         connection_ = false;
+        disconnect();
+      }
 
       return false;
     }   
   }
 
 
-  void PadEventEditor::addCodeIdEntry(uint event_code, uint8_t ui_id) {
-    this->id_map_[event_code] = ui_id;
+  void PadEventEditor::addCodeIdEntry(uint event_code, ui_id id) {
+    this->id_map_[event_code] = id;
   }
 
   void PadEventEditor::setDeadZone(float deadzone) {
@@ -144,7 +146,6 @@ namespace pad {
   ButtonData::ButtonData(uint total_input):
     InputData(total_input)
   {
-    this->type_ = EventType::Button;
     this->clear();
   }
 
@@ -156,10 +157,12 @@ namespace pad {
 
   void ButtonData::update(PadEventEditor& editor) {
     if (editor.getEventType() == EventType::Button) {
-      update_flag_ = true;
-      event_ = editor.getButtonEvent();
-      if (event_.id <= this->size_)
-        list_[event_.id] = event_.state;
+      ButtonEvent event = editor.getButtonEvent();
+      if (event.id >= this->size_) return;
+
+      this->update_flag_ = true;
+      this->event_ = event;
+      list_[event_.id] = event_.state;
     }
   }
 
@@ -167,7 +170,6 @@ namespace pad {
   AxisData::AxisData(uint total_input):
     InputData(total_input) 
   {
-    this->type_ = EventType::Axis;
     this->clear();
   }
 
@@ -180,7 +182,7 @@ namespace pad {
   void AxisData::update(PadEventEditor& editor) {
     if (editor.getEventType() == EventType::Axis) {
       event_ = editor.getAxisEvent();
-      if (event_.id <= this->size_)
+      if (event_.id < this->size_)
         list_[event_.id] = event_.value;
     }
   }

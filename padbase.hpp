@@ -3,7 +3,6 @@
 
 #include <fcntl.h>
 #include <unistd.h>
-#include <stdint.h>
 #include <linux/input.h>
 #include <sys/ioctl.h>
 
@@ -17,9 +16,13 @@
 
 namespace pad {
 
+  using ui_id = unsigned char;
+  // デバイスファイルのCODE->インターフェースのID の変換テーブルmap
+  using code_id_map = std::unordered_map<uint, ui_id>;
+
   const float default_deadzone = 0.05;
-  const int default_button_num = 20;
-  const int default_axis_num = 8;
+  const int num_default_buttons = 20;
+  const int num_default_axes = 8;
 
   namespace {
     const std::string devlist_path = "/proc/bus/input/devices";
@@ -36,24 +39,17 @@ namespace pad {
     OpenDeviceFile
   };
 
-  /**
-   * @brief 
-   * 
-   */
+
   struct PadEvent {
-    uint16_t  code;
+    unsigned short code;
     int32_t   value;
     EventType type;
   };
 
 
-  /**
-   * @brief read event data of game controller 
-   * 
-   */
   class PadReader {
    private:
-    std::string path = "/dev/input/";
+    std::string dev_path_ = "/dev/input/";
 
     bool connection_;
     int  fd_;
@@ -87,22 +83,16 @@ namespace pad {
 
 
   struct ButtonEvent {
-    uint8_t id;
-    bool    state;
+    ui_id id;
+    bool  state;
   };
 
   struct AxisEvent {
-    uint8_t id;
-    float   value;
+    ui_id id;
+    float value;
   };
 
-  // デバイスファイルのCODE->インターフェースのID の変換テーブルmap
-  using code_id_map = std::unordered_map<uint, uint8_t>;
 
-  /**
-   * @brief 
-   * 
-   */
   class PadEventEditor {
    protected:
     code_id_map id_map_;
@@ -116,7 +106,7 @@ namespace pad {
 
    public:
     void editEvent(PadReader& reader);
-    void addCodeIdEntry(uint event_code, uint8_t ui_id);
+    void addCodeIdEntry(uint event_code, ui_id id);
     void setDeadZone(float deadzone);
 
     inline EventType getEventType() { 
@@ -132,16 +122,11 @@ namespace pad {
     }    
   };
 
-      /**
-   * @brief 
-   * 
-   * @tparam T 
-   */
+
   template <typename T>
   class InputData {
    protected: 
     uint size_;
-    EventType type_;
     std::vector<T> list_; 
 
    public:
@@ -152,10 +137,6 @@ namespace pad {
 
     std::vector<T> getVector() {
       return this->list_;
-    }
-
-    int getSize() {
-      return this->list_.size();
     }
 
     void resize(int total_input) {
@@ -176,16 +157,23 @@ namespace pad {
     void clear() override;
     void update(PadEventEditor& editor) override;
 
-    inline bool IDUpdated(uint8_t id) {
-      return update_flag_ && (event_.id == id);
-    }
-
     inline void resetUpdateFlag() {
       this->update_flag_ = false;
     }
 
-    inline bool getState(uint8_t id) {
-      return this->list_.at(id);
+    inline bool updated() {
+      return update_flag_;
+    }
+
+    inline ui_id getEventId() {
+      return event_.id;
+    }
+
+    inline bool getState(ui_id id) {
+      if (id >= this->size_) {
+        return false;
+      }
+      return this->list_[id];
     }
   };
  
@@ -198,8 +186,11 @@ namespace pad {
     void clear() override;
     void update(PadEventEditor& editor) override;
 
-    inline float getValue(uint8_t id) {
-      return this->list_.at(id);
+    inline float getValue(ui_id id) {
+      if (id >= this->size_)   {
+        return (float)0.0;
+      }
+      return this->list_[id];
     }
   };  
   
@@ -207,19 +198,19 @@ namespace pad {
   template <class Editor>
   class BasePad {
    protected:
-    std::unique_ptr<PadEventEditor> editor_;
+    bool is_connected_{false};
+    std::string device_name_;
     PadReader   reader_;
     ButtonData  buttons_;
     AxisData    axes_;
-    bool is_connected_{false};
-    std::string device_name_;
+    std::unique_ptr<PadEventEditor> editor_;
 
    public:
     BasePad(std::string device_name, 
-            int button_num = default_button_num, 
-            int axis_num = default_axis_num):
-      buttons_(button_num),
-      axes_(axis_num)
+            int num_buttons = num_default_buttons,
+            int num_axes = num_default_axes):
+      buttons_(num_buttons),
+      axes_(num_axes)
     {
       this->device_name_ = device_name;
       this->editor_ = std::make_unique<Editor>();
@@ -239,31 +230,27 @@ namespace pad {
         return false;
       }
 
-      return this->reader_.connect(this->device_name_);
+      reader_.disconnect();
+      return reader_.connect(device_name_);
     }
     
     void setDeadZone(float deadzone) {
       this->editor_->setDeadZone(deadzone);
     }
 
-    void resizeInputTotal(int total_button, int total_axis) {
-      this->buttons_.resize(total_button);
-      this->axes_.resize(total_axis);
-    }
-
     void update() {
-      if (!(this->reader_.isConnected())) {
+      if (!(reader_.isConnected())) {
         this->is_connected_ = false;
-        this->buttons_.clear();
-        this->axes_.clear();
+        buttons_.clear();
+        axes_.clear();
         return;
       }
 
       if (this->reader_.readEvent()) {
-        (*(this->editor_)).editEvent(this->reader_);
+        (*editor_).editEvent(reader_);
 
-        this->buttons_.update(*(this->editor_));
-        this->axes_.update(*(this->editor_));
+        buttons_.update(*editor_);
+        axes_.update(*editor_);
       }
     }
   };

@@ -30,7 +30,7 @@ namespace pad {
         {ABS_HAT0Y,  AxisID::crossY},
       };
 
-      this->axis_max_ = std::numeric_limits<uint8_t>::max();
+      this->axis_max_ = std::numeric_limits<unsigned char>::max();
       this->deadzone_ = default_deadzone;
     }
 
@@ -84,7 +84,7 @@ namespace pad {
 
     void PS5Editor::editAxisEvent() {
       int32_t val = event_.value;
-      uint8_t id  = id_map_[event_.code]; 
+      ui_id   id  = id_map_[event_.code]; 
 
       switch (id) {
         case (AxisID::crossX): {
@@ -101,8 +101,7 @@ namespace pad {
 
       // 値の範囲を-axis_max <--> axis_max に拡張
       if (id != AxisID::L2depth && id != AxisID::R2depth) {
-        val *= 2;
-        val -= axis_max_;
+        val = (val * 2) - axis_max_;
       }
 
       switch (id) {
@@ -115,7 +114,9 @@ namespace pad {
           // axis値を-1.0 <--> 1.0 に
           axis_event_.id = id;
           float fval = static_cast<float>(val) / axis_max_;
-          if (fabs(fval) < deadzone_) fval = 0.0;
+          if (fabs(fval) < deadzone_) { 
+            fval = 0.0;
+          }
           axis_event_.value = fval;
         }
       }
@@ -134,43 +135,6 @@ namespace pad {
           break;
         }
       }
-    }
-
-
-    DualSense::DualSense(std::string device_name):
-      GamePad(device_name)
-    {
-      std::vector<Button*> buttons = {
-        &Cross, 
-        &Circle, 
-        &Triangle, 
-        &Square,
-        &L1, 
-        &R1, 
-        &L2, 
-        &R2,
-        &Create,
-        &Option,
-        &Ps,
-        &L3, 
-        &R3,
-        &Left, 
-        &Right, 
-        &Up, 
-        &Down
-      };
-
-      std::vector<Axis*> axes = {
-        &(LStick.x),
-        &(LStick.y),
-        &(L2.depth),
-        &(RStick.x),
-        &(RStick.y),
-        &(R2.depth)
-      };
-
-      this->attachUI(buttons);
-      this->attachUI(axes);
     }
   }
 }
