@@ -181,9 +181,11 @@ namespace pad {
 
   void AxisData::update(PadEventEditor& editor) {
     if (editor.getEventType() == EventType::Axis) {
-      event_ = editor.getAxisEvent();
-      if (event_.id < this->size_)
-        list_[event_.id] = event_.value;
+      AxisEvent event = editor.getAxisEvent();
+      if (event.id >= this->size_) return;
+
+      this->event_ = event;
+      this->list_[event_.id] = event_.value;
     }
   }
 }
