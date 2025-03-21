@@ -26,19 +26,12 @@ namespace pad {
 
   namespace {
     const std::string devlist_path = "/proc/bus/input/devices";
+    const std::string devfile_path = "/dev/input/";
   }
 
   enum class EventType {
     None, Button, Axis
   };
-
-  enum class ErrorCode {
-    None,
-    FindDeviceName,
-    FindDeviceFile,
-    OpenDeviceFile
-  };
-
 
   struct PadEvent {
     unsigned short code;
@@ -49,11 +42,10 @@ namespace pad {
 
   class PadReader {
    private:
-    std::string dev_path_ = "/dev/input/";
+    std::string dev_path_;
 
     bool connection_;
     int  fd_;
-    ErrorCode code_;
     input_event raw_event_;
     PadEvent    event_;
 
@@ -70,10 +62,6 @@ namespace pad {
 
     inline bool isConnected() {
       return this->connection_;
-    }
-
-    inline int getErrorCode() {
-      return static_cast<int>(this->code_);
     }
 
     inline PadEvent getPadEvent() {
@@ -126,7 +114,8 @@ namespace pad {
   template <typename T>
   class InputData {
    protected: 
-    uint size_;
+    T event_val_;
+    uint  size_;
     std::vector<T> list_; 
 
    public:
@@ -149,8 +138,8 @@ namespace pad {
 
   class ButtonData: public InputData<bool> {
    protected:
-    bool update_flag_{false};
-    ButtonEvent event_{0, false};
+    ui_id event_id_;
+    bool  update_flag_{false};
 
    public:
     ButtonData(uint total_input);
@@ -166,7 +155,7 @@ namespace pad {
     }
 
     inline ui_id getEventId() {
-      return event_.id;
+      return this->event_id_;
     }
 
     inline bool getState(ui_id id) {
@@ -179,7 +168,6 @@ namespace pad {
  
   class AxisData: public InputData<float> {
    protected:
-    AxisEvent event_{0, 0.0};
 
    public:  
     AxisData(uint total_input);
@@ -188,7 +176,7 @@ namespace pad {
 
     inline float getValue(ui_id id) {
       if (id >= this->size_)   {
-        return (float)0.0;
+        return 0.0f;
       }
       return this->list_[id];
     }
@@ -246,12 +234,15 @@ namespace pad {
         return;
       }
 
-      if (this->reader_.readEvent()) {
-        (*editor_).editEvent(reader_);
+      if (!(this->reader_.readEvent())) return;
 
-        buttons_.update(*editor_);
-        axes_.update(*editor_);
-      }
+      (*editor_).editEvent(reader_);
+      EventType type = (*editor_).getEventType();
+      
+      switch (type) {
+        case EventType::Button: buttons_.update(*editor_);
+        case EventType::Axis:   axes_.update(*editor_);
+      } 
     }
   };
 

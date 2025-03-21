@@ -2,12 +2,6 @@
 
 namespace pad {
 
-  /* [ PadReader member functions ] */
-
-  /**
-   * @brief Destroy the Pad Reader:: Pad Reader object
-   * 
-   */
   PadReader::~PadReader() { disconnect(); }
 
   void PadReader::findDeviceName(std::string devname, std::ifstream& stream) {
@@ -23,7 +17,7 @@ namespace pad {
     }
 
     if (!is_found) {
-      throw ErrorCode::FindDeviceName;
+      throw std::runtime_error("Failed to find name of target device");
     }
   }
 
@@ -39,10 +33,10 @@ namespace pad {
 
     // select device file [ eventX ]
     if (std::regex_search(buf, smatch, regex_devfile)) {
-      this->dev_path_ += smatch[0].str();
+      this->dev_path_ = devfile_path + smatch[0].str();
     }
     else {
-      throw ErrorCode::FindDeviceFile;
+      throw std::runtime_error("Failed to find device file(handler)");
     }
   }
 
@@ -51,7 +45,7 @@ namespace pad {
     this->fd_ = open(dev_path_.c_str(), O_RDONLY | O_NONBLOCK);
 
     if (this->fd_ == -1) {
-      throw ErrorCode::OpenDeviceFile;
+      throw std::runtime_error("Failed to open device file");
     }
   }
 
@@ -74,10 +68,9 @@ namespace pad {
       findDeviceHandler(read_stream);
       openDeviceFile();
       is_readable = true; 
-      code_ = ErrorCode::None;
     }
-    catch (ErrorCode code) {
-      this->code_ = code;
+    catch (std::runtime_error& e) {
+      std::cout << e.what() << std::endl;
       return false;
     }
 
@@ -146,6 +139,7 @@ namespace pad {
   ButtonData::ButtonData(uint total_input):
     InputData(total_input)
   {
+    this->event_val_ = false;
     this->clear();
   }
 
@@ -156,20 +150,20 @@ namespace pad {
   }
 
   void ButtonData::update(PadEventEditor& editor) {
-    if (editor.getEventType() == EventType::Button) {
-      ButtonEvent event = editor.getButtonEvent();
-      if (event.id >= this->size_) return;
+    ButtonEvent event = editor.getButtonEvent();
+    if (event.id >= this->size_) return;
 
-      this->update_flag_ = true;
-      this->event_ = event;
-      list_[event_.id] = event_.state;
-    }
+    this->update_flag_ = true;
+    this->event_id_  = event.id;
+    this->event_val_ = event.state;
+    list_[event_id_] = event_val_;
   }
 
 
   AxisData::AxisData(uint total_input):
     InputData(total_input) 
   {
+    this->event_val_ = 0.0f;
     this->clear();
   }
 
@@ -180,12 +174,10 @@ namespace pad {
   }
 
   void AxisData::update(PadEventEditor& editor) {
-    if (editor.getEventType() == EventType::Axis) {
-      AxisEvent event = editor.getAxisEvent();
-      if (event.id >= this->size_) return;
+    AxisEvent event = editor.getAxisEvent();
+    if (event.id >= this->size_) return;
 
-      this->event_ = event;
-      this->list_[event_.id] = event_.value;
-    }
+    this->event_val_ = event.value;
+    this->list_[event.id] = event_val_;
   }
 }
