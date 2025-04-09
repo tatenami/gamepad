@@ -59,15 +59,15 @@ namespace pad {
 
     void ProconEditor::editCrossYData(int32_t val) {
       if (val > 0) {
-        this->pre_crossXid_ = ButtonID::down;
+        this->pre_crossYid_ = ButtonID::down;
         button_event_ = {ButtonID::down, true};
       }
       else if (val < 0)  {
-        this->pre_crossXid_ = ButtonID::up;
+        this->pre_crossYid_ = ButtonID::up;
         button_event_ = {ButtonID::up, true};
       }
       else {
-        switch (this->pre_crossXid_) {
+        switch (this->pre_crossYid_) {
           case (ButtonID::down): {
             button_event_.id = ButtonID::down; 
             break;

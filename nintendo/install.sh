@@ -1,4 +1,4 @@
-g++ -shared -fPIC -O3 -o libprocon.so ../pad.cpp ../padbase.cpp procon.cpp
+g++ -shared -fPIC -O3 -o libprocon.so  ../padbase.cpp procon.cpp
 
 sudo cp procon.hpp /usr/local/include/pad
 
