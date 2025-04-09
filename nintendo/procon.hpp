@@ -1,7 +1,7 @@
 #ifndef PROCON_H
 #define PROCON_H
 
-#include "../padbase.hpp"
+#include "pad/padbase.hpp"
 
 namespace pad {
 
